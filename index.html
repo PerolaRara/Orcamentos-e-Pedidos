@@ -13,18 +13,23 @@
         <header>
             <img src="logo_perola_rara.png" alt="Logo Pérola Rara" id="logo">
             <h1>Pérola Rara</h1>
+            <hr class="titulo">
             <nav>
                 <ul>
                     <li><a href="#" onclick="mostrarPagina('lista-pedidos'); mostrarPedidosDoMes()">Pedidos do Mês</a></li>
                     <li><a href="#" onclick="mostrarPagina('relatorio')">Relatório</a></li>
+                    <li id="menu-inicio" style="display: none;"><a href="#" onclick="mostrarPagina('form-pedido')">Início</a></li>
+                    <li><a href="#" onclick="mostrarPagina('backup');">Importar/Exportar</a></li>
                 </ul>
             </nav>
+            <hr class="menu">
         </header>
         <!-- ==== FIM SEÇÃO - CABEÇALHO ==== -->
 
         <!-- ==== INÍCIO SEÇÃO - FORMULÁRIO DE PEDIDO ==== -->
         <section id="form-pedido" class="pagina">
             <h2>Novo Pedido</h2>
+            <hr class="subtitulo">
             <form id="pedido">
                 <div class="form-row">
                     <div class="form-group">
@@ -76,6 +81,7 @@
                         <input type="number" id="idade" name="idade" placeholder="Idade (se aplicável)">
                     </div>
                 </div>
+                <hr class="tabela">
                 <div class="table-responsive">
                     <table id="tabelaProdutos">
                         <thead>
@@ -92,6 +98,7 @@
                     </table>
                     <button type="button" onclick="adicionarProduto()">Adicionar Produto</button>
                 </div>
+                <hr class="final-tabela">
                 <div class="form-row">
                     <div class="form-group">
                         <label>Entrega:</label>
@@ -182,6 +189,22 @@
             <button type="button" onclick="gerarRelatorioCSV()">Exportar Relatório (CSV)</button>
         </section>
         <!-- ==== FIM SEÇÃO - RELATÓRIO ==== -->
+
+        <!-- ==== INÍCIO SEÇÃO - IMPORTAR EXPORTAR ==== -->
+        <section id="backup" class="pagina" style="display:none;">
+            <button type="button" onclick="mostrarPagina('form-pedido')">Voltar ao Início</button>
+            <h2>Importar e Exportar Dados</h2>
+
+            <div>
+                <input type="file" id="inputImportar" accept=".json">
+                <button type="button" onclick="importarDados()">Importar Dados</button>
+            </div>
+
+            <div>
+                <button type="button" onclick="exportarDados()">Exportar Dados</button>
+            </div>
+        </section>
+        <!-- ==== FIM SEÇÃO - IMPORTAR EXPORTAR ==== -->
     </div>
 
     <script src="script.js"></script>
