@@ -218,7 +218,56 @@ function mostrarPagina(idPagina) {
     });
 
     document.getElementById(idPagina).style.display = 'block';
+
+    // Mostrar ou ocultar o menu "Início"
+    const menuInicio = document.getElementById('menu-inicio');
+    if (idPagina === 'form-pedido') {
+        menuInicio.style.display = 'none';
+    } else {
+        menuInicio.style.display = 'inline';
+    }
 }
+
+/* ==== INÍCIO SEÇÃO - IMPORTAR/EXPORTAR DADOS ==== */
+function exportarDados() {
+    const dadosParaExportar = JSON.stringify(pedidos);
+    const blob = new Blob([dadosParaExportar], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'backup_pedidos.json';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function importarDados() {
+    const inputImportar = document.getElementById('inputImportar');
+    if (inputImportar.files.length > 0) {
+        const arquivo = inputImportar.files[0];
+        const leitor = new FileReader();
+
+        leitor.onload = function(e) {
+            try {
+                const dadosImportados = JSON.parse(e.target.result);
+                pedidos = dadosImportados;
+                localStorage.setItem('pedidos', JSON.stringify(pedidos));
+                alert('Dados importados com sucesso!');
+                mostrarPagina('form-pedido');
+            } catch (erro) {
+                alert('Erro ao importar dados: ' + erro.message);
+            }
+        };
+
+        leitor.readAsText(arquivo);
+    } else {
+        alert('Selecione um arquivo para importar.');
+    }
+}
+/* ==== FIM SEÇÃO - IMPORTAR/EXPORTAR DADOS ==== */
 
 /* ==== INÍCIO SEÇÃO - EVENT LISTENERS ==== */
 document.addEventListener('DOMContentLoaded', () => {
