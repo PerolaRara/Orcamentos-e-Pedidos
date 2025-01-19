@@ -18,6 +18,35 @@ body {
     background-color: #fff;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
+
+hr.titulo {
+    border: 2px solid #7aa2a9;
+    margin-bottom: 10px;
+}
+
+hr.menu {
+    border: 1px solid #7aa2a9;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+hr.subtitulo {
+    border: 1px solid #ccc;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+hr.tabela {
+    border: 1px solid #ccc;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+hr.final-tabela {
+    border: 1px solid #ccc;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
 /* ==== FIM SEÇÃO - ESTILOS GERAIS ==== */
 
 /* ==== INÍCIO SEÇÃO - CABEÇALHO ==== */
@@ -146,6 +175,14 @@ button {
 button:hover {
     background-color: #5a8289;
 }
+
+/* ==== INÍCIO SEÇÃO - BOTÃO VOLTAR AO INÍCIO ==== */
+#lista-pedidos button, #relatorio button, #backup button {
+    display: block;
+    margin: 0 auto 20px auto;
+}
+/* ==== FIM SEÇÃO - BOTÃO VOLTAR AO INÍCIO ==== */
+
 /* ==== FIM SEÇÃO - BOTÕES ==== */
 
 /* ==== INÍCIO SEÇÃO - SEÇÃO RELATÓRIO ==== */
