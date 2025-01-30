@@ -10,6 +10,7 @@ const anoAtual = new Date().getFullYear();
 document.addEventListener('DOMContentLoaded', () => {
     carregarDados();
     mostrarPagina('form-orcamento');
+    atualizarPainelUltimoBackup();
 });
 /* ==== FIM SEÇÃO - CARREGAR DADOS DO LOCALSTORAGE ==== */
 
@@ -46,7 +47,7 @@ function adicionarProduto() {
 
     cellQuantidade.innerHTML = '<input type="number" class="produto-quantidade" value="1" min="1" onchange="atualizarTotais()">';
     cellDescricao.innerHTML = '<input type="text" class="produto-descricao">';
-    cellValorUnit.innerHTML = '<input type="text" class="produto-valor-unit" value="0,00" onblur="formatarCampoMoeda(this); atualizarTotais()">';
+    cellValorUnit.innerHTML = '<input type="text" class="produto-valor-unit" value="0,00" oninput="formatarEntradaMoeda(this)" onblur="formatarCampoMoeda(this); atualizarTotais()">';
     cellValorTotal.textContent = formatarMoeda(0);
 }
 
@@ -61,7 +62,7 @@ function adicionarProdutoEdicao() {
 
     cellQuantidade.innerHTML = '<input type="number" class="produto-quantidade" value="1" min="1" onchange="atualizarTotaisEdicao()">';
     cellDescricao.innerHTML = '<input type="text" class="produto-descricao">';
-    cellValorUnit.innerHTML = '<input type="text" class="produto-valor-unit" value="0,00" onblur="formatarCampoMoeda(this); atualizarTotaisEdicao()">';
+    cellValorUnit.innerHTML = '<input type="text" class="produto-valor-unit" value="0,00" oninput="formatarEntradaMoeda(this)" onblur="formatarCampoMoeda(this); atualizarTotaisEdicao()">';
     cellValorTotal.textContent = formatarMoeda(0);
 }
 
@@ -118,7 +119,34 @@ function atualizarRestanteEdicao() {
 function gerarNumeroFormatado(numero) {
     return numero.toString().padStart(4, '0') + '/' + anoAtual;
 }
-/* ==== FIM SEÇÃO - FUNÇÕES AUXILIARES ==== */
+
+/* ==== NOVA FUNÇÃO PARA FORMATAÇÃO PROGRESSIVA DE MOEDA ==== */
+function formatarEntradaMoeda(input) {
+    // Remove todos os caracteres não numéricos, exceto vírgulas
+    let valor = input.value.replace(/[^0-9,]/g, '');
+
+    // Remove as vírgulas existentes e as substitui por um ponto para formatação
+    valor = valor.replace(/,/g, '.');
+
+    // Converte para número para formatação e volta para string
+    let numero = parseFloat(valor);
+
+    // Verifica se é um número válido
+    if (!isNaN(numero)) {
+        // Formata o número com 2 casas decimais
+        let valorFormatado = numero.toFixed(2);
+
+        // Substitui o ponto por vírgula
+        valorFormatado = valorFormatado.replace('.', ',');
+
+        // Define o novo valor formatado no campo
+        input.value = valorFormatado;
+    } else {
+        // Se não for um número válido, limpa o campo
+        input.value = '';
+    }
+}
+/* ==== FIM DA SEÇÃO - FUNÇÕES AUXILIARES ==== */
 
 /* ==== INÍCIO SEÇÃO - GERAÇÃO DE ORÇAMENTO ==== */
 function gerarOrcamento() {
@@ -130,10 +158,10 @@ function gerarOrcamento() {
         endereco: document.getElementById("endereco").value,
         tema: document.getElementById("tema").value,
         cidade: document.getElementById("cidade").value,
-        contato: document.getElementById("contato").value,
+        telefone: document.getElementById("telefone").value, // Alterado de 'contato' para 'telefone'
+        email: document.getElementById("email").value, // Adicionado campo de e-mail
         cores: document.getElementById("cores").value,
         produtos: [],
-        entrega: Array.from(document.querySelectorAll('input[name="entrega"]:checked')).map(el => el.value),
         pagamento: Array.from(document.querySelectorAll('input[name="pagamento"]:checked')).map(el => el.value),
         valorFrete: parseFloat(document.getElementById("valorFrete").value.replace(/[^\d,]/g, '').replace(',', '.')),
         valorOrcamento: parseFloat(document.getElementById("valorOrcamento").value.replace(/[^\d,]/g, '').replace(',', '.')),
@@ -189,7 +217,8 @@ function exibirOrcamentoEmHTML(orcamento) {
                 <strong>Cliente:</strong> ${orcamento.cliente}<br>
                 <strong>Endereço:</strong> ${orcamento.endereco}<br>
                 <strong>Cidade:</strong> ${orcamento.cidade}<br>
-                <strong>Contato:</strong> ${orcamento.contato}<br>
+                <strong>Telefone:</strong> ${orcamento.telefone}<br>
+                <strong>E-mail:</strong> ${orcamento.email}<br>
                 ${orcamento.tema ? `<strong>Tema:</strong> ${orcamento.tema}<br>` : ''}
                 ${orcamento.cores ? `<strong>Cores:</strong> ${orcamento.cores}<br>` : ''}
             </div>
@@ -222,7 +251,6 @@ function exibirOrcamentoEmHTML(orcamento) {
                 </tbody>
             </table>
             <div class="info-orcamento">
-                <strong>Entrega:</strong> ${orcamento.entrega.join(', ')}<br>
                 <strong>Pagamento:</strong> ${orcamento.pagamento.join(', ')}<br>
                 <strong>Valor do Frete:</strong> ${formatarMoeda(orcamento.valorFrete)}<br>
                 <strong>Valor do Orçamento:</strong> ${formatarMoeda(orcamento.valorOrcamento)}<br>
@@ -518,6 +546,9 @@ function exportarDados() {
     const minuto = agora.getMinutes().toString().padStart(2, '0');
     const nomeArquivo = `${ano}${mes}${dia}_${hora}${minuto}_Backup_Pérola_Rara.json`;
 
+    // Salvar informações do backup no localStorage
+    localStorage.setItem('ultimoBackup', JSON.stringify({ nomeArquivo, data: agora.toISOString() }));
+
     const a = document.createElement('a');
     a.href = url;
     a.download = nomeArquivo;
@@ -526,12 +557,15 @@ function exportarDados() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+
+    atualizarPainelUltimoBackup();
 }
 
 function importarDados() {
     const inputImportar = document.getElementById('inputImportar');
     if (inputImportar.files.length > 0) {
         const arquivo = inputImportar.files[0];
+        const nomeArquivo = arquivo.name; // Obter o nome do arquivo
         const leitor = new FileReader();
 
         leitor.onload = function (e) {
@@ -543,8 +577,18 @@ function importarDados() {
                 numeroPedido = dadosImportados.numeroPedido || 1;
 
                 salvarDados();
+
+                // Extrair data e hora do nome do arquivo e salvar no localStorage
+                const match = nomeArquivo.match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})/);
+                if (match) {
+                    const [, ano, mes, dia, hora, minuto] = match;
+                    const dataArquivo = new Date(`${ano}-${mes}-${dia}T${hora}:${minuto}`);
+                    localStorage.setItem('ultimoBackup', JSON.stringify({ nomeArquivo, data: dataArquivo.toISOString() }));
+                }
+
                 alert('Dados importados com sucesso!');
                 mostrarPagina('form-orcamento');
+                atualizarPainelUltimoBackup();
             } catch (erro) {
                 alert('Erro ao importar dados: ' + erro.message);
             }
@@ -556,6 +600,22 @@ function importarDados() {
     }
 }
 /* ==== FIM SEÇÃO - IMPORTAR/EXPORTAR ==== */
+
+/* ==== INÍCIO SEÇÃO - PAINEL ÚLTIMO BACKUP ==== */
+function atualizarPainelUltimoBackup() {
+    const ultimoBackup = JSON.parse(localStorage.getItem('ultimoBackup'));
+    const painel = document.getElementById('ultimoBackup');
+
+    if (ultimoBackup) {
+        const data = new Date(ultimoBackup.data);
+        const dataFormatada = `${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')}/${data.getFullYear()} ${data.getHours().toString().padStart(2, '0')}:${data.getMinutes().toString().padStart(2, '0')}`;
+
+        painel.innerHTML = `Último backup: ${dataFormatada}`;
+    } else {
+        painel.innerHTML = 'Nenhum backup encontrado';
+    }
+}
+/* ==== FIM SEÇÃO - PAINEL ÚLTIMO BACKUP ==== */
 
 /* ==== INÍCIO SEÇÃO - FUNÇÕES DE CONTROLE DE PÁGINA ==== */
 function mostrarPagina(idPagina) {
@@ -581,4 +641,3 @@ function carregarDados() {
     numeroPedido = parseInt(localStorage.getItem('numeroPedido')) || 1;
 }
 /* ==== FIM SEÇÃO - FUNÇÕES DE CONTROLE DE PÁGINA ==== */
-
