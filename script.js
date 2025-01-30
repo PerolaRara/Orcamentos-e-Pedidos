@@ -4,6 +4,7 @@ let pedidos = [];
 let numeroOrcamento = 1;
 let numeroPedido = 1;
 const anoAtual = new Date().getFullYear();
+let orcamentoEditando = null; // Variável para controlar se está editando um orçamento
 /* ==== FIM SEÇÃO - VARIÁVEIS GLOBAIS ==== */
 
 /* ==== INÍCIO SEÇÃO - CARREGAR DADOS DO LOCALSTORAGE ==== */
@@ -150,6 +151,12 @@ function formatarEntradaMoeda(input) {
 
 /* ==== INÍCIO SEÇÃO - GERAÇÃO DE ORÇAMENTO ==== */
 function gerarOrcamento() {
+    // Verifica se está no modo de edição
+    if (orcamentoEditando !== null) {
+        alert("Você está no modo de edição de orçamento. Clique em 'Atualizar Orçamento' para salvar as alterações.");
+        return;
+    }
+    
     const orcamento = {
         numero: gerarNumeroFormatado(numeroOrcamento),
         dataOrcamento: document.getElementById("dataOrcamento").value,
@@ -158,15 +165,16 @@ function gerarOrcamento() {
         endereco: document.getElementById("endereco").value,
         tema: document.getElementById("tema").value,
         cidade: document.getElementById("cidade").value,
-        telefone: document.getElementById("telefone").value, // Alterado de 'contato' para 'telefone'
-        email: document.getElementById("email").value, // Adicionado campo de e-mail
+        telefone: document.getElementById("telefone").value,
+        email: document.getElementById("email").value,
         cores: document.getElementById("cores").value,
         produtos: [],
         pagamento: Array.from(document.querySelectorAll('input[name="pagamento"]:checked')).map(el => el.value),
         valorFrete: parseFloat(document.getElementById("valorFrete").value.replace(/[^\d,]/g, '').replace(',', '.')),
         valorOrcamento: parseFloat(document.getElementById("valorOrcamento").value.replace(/[^\d,]/g, '').replace(',', '.')),
         total: parseFloat(document.getElementById("total").value.replace(/[^\d,]/g, '').replace(',', '.')),
-        observacoes: document.getElementById("observacoes").value
+        observacoes: document.getElementById("observacoes").value,
+        pedidoGerado: false // Adiciona a propriedade para rastrear se um pedido já foi gerado
     };
 
     const produtos = document.querySelectorAll("#tabelaProdutos tbody tr");
@@ -283,8 +291,12 @@ function mostrarOrcamentosGerados() {
         cellData.textContent = orcamento.dataOrcamento;
         cellCliente.textContent = orcamento.cliente;
         cellTotal.textContent = formatarMoeda(orcamento.total);
-        cellAcoes.innerHTML = `<button type="button" onclick="gerarPedido('${orcamento.numero}')">Gerar Pedido</button>
+        // Modifica a célula de ações para incluir o botão "Editar" e verificar se um pedido já foi gerado
+        cellAcoes.innerHTML = `<button type="button" onclick="editarOrcamento('${orcamento.numero}')">Editar</button>
                                <button type="button" onclick="exibirOrcamentoEmHTML(orcamentos.find(o => o.numero === '${orcamento.numero}'))">Visualizar</button>`;
+        if (!orcamento.pedidoGerado) {
+            cellAcoes.innerHTML += ` <button type="button" onclick="gerarPedido('${orcamento.numero}')">Gerar Pedido</button>`;
+        }
     });
 }
 
@@ -293,15 +305,18 @@ function filtrarOrcamentos() {
     const dataFim = document.getElementById('filtroDataFimOrcamento').value;
     const numeroOrcamentoFiltro = parseInt(document.getElementById('filtroNumeroOrcamento').value);
     const anoOrcamentoFiltro = parseInt(document.getElementById('filtroAnoOrcamento').value);
+    const clienteOrcamentoFiltro = document.getElementById('filtroClienteOrcamento').value.toLowerCase();
 
     const orcamentosFiltrados = orcamentos.filter(orcamento => {
         const [numOrcamento, anoOrcamento] = orcamento.numero.split('/');
         const dataOrcamento = new Date(orcamento.dataOrcamento);
+        const nomeCliente = orcamento.cliente.toLowerCase();
 
         return (!dataInicio || dataOrcamento >= new Date(dataInicio)) &&
                (!dataFim || dataOrcamento <= new Date(dataFim)) &&
                (!numeroOrcamentoFiltro || parseInt(numOrcamento) === numeroOrcamentoFiltro) &&
-               (!anoOrcamentoFiltro || parseInt(anoOrcamento) === anoOrcamentoFiltro);
+               (!anoOrcamentoFiltro || parseInt(anoOrcamento) === anoOrcamentoFiltro) &&
+               nomeCliente.includes(clienteOrcamentoFiltro);
     });
 
     atualizarListaOrcamentos(orcamentosFiltrados);
@@ -317,9 +332,136 @@ function atualizarListaOrcamentos(orcamentosFiltrados) {
         row.insertCell().textContent = orcamento.dataOrcamento;
         row.insertCell().textContent = orcamento.cliente;
         row.insertCell().textContent = formatarMoeda(orcamento.total);
-        row.insertCell().innerHTML = `<button type="button" onclick="gerarPedido('${orcamento.numero}')">Gerar Pedido</button>
-                                       <button type="button" onclick="exibirOrcamentoEmHTML(orcamentos.find(o => o.numero === '${orcamento.numero}'))">Visualizar</button>`;
+        const cellAcoes = row.insertCell();
+        cellAcoes.innerHTML = `<button type="button" onclick="editarOrcamento('${orcamento.numero}')">Editar</button>
+                               <button type="button" onclick="exibirOrcamentoEmHTML(orcamentos.find(o => o.numero === '${orcamento.numero}'))">Visualizar</button>`;
+        if (!orcamento.pedidoGerado) {
+            cellAcoes.innerHTML += ` <button type="button" onclick="gerarPedido('${orcamento.numero}')">Gerar Pedido</button>`;
+        }
     });
+}
+
+function editarOrcamento(numeroOrcamento) {
+    const orcamento = orcamentos.find(o => o.numero === numeroOrcamento);
+    if (!orcamento) {
+        alert("Orçamento não encontrado.");
+        return;
+    }
+
+    // Verifica se um pedido já foi gerado para este orçamento
+    if (orcamento.pedidoGerado) {
+        alert("Não é possível editar um orçamento que já gerou um pedido.");
+        return;
+    }
+
+    orcamentoEditando = orcamento.numero; // Define o orçamento que está sendo editado
+
+    // Preencher o formulário com os dados do orçamento
+    document.getElementById("dataOrcamento").value = orcamento.dataOrcamento;
+    document.getElementById("dataValidade").value = orcamento.dataValidade;
+    document.getElementById("cliente").value = orcamento.cliente;
+    document.getElementById("endereco").value = orcamento.endereco;
+    document.getElementById("tema").value = orcamento.tema;
+    document.getElementById("cidade").value = orcamento.cidade;
+    document.getElementById("telefone").value = orcamento.telefone;
+    document.getElementById("email").value = orcamento.email;
+    document.getElementById("cores").value = orcamento.cores;
+    document.getElementById("valorFrete").value = formatarMoeda(orcamento.valorFrete);
+    document.getElementById("valorOrcamento").value = formatarMoeda(orcamento.valorOrcamento);
+    document.getElementById("total").value = formatarMoeda(orcamento.total);
+    document.getElementById("observacoes").value = orcamento.observacoes;
+
+    // Preencher a tabela de produtos
+    const tbody = document.querySelector("#tabelaProdutos tbody");
+    tbody.innerHTML = '';
+    orcamento.produtos.forEach(produto => {
+        const row = tbody.insertRow();
+        const cellQuantidade = row.insertCell();
+        const cellDescricao = row.insertCell();
+        const cellValorUnit = row.insertCell();
+        const cellValorTotal = row.insertCell();
+
+        cellQuantidade.innerHTML = `<input type="number" class="produto-quantidade" value="${produto.quantidade}" min="1" onchange="atualizarTotais()">`;
+        cellDescricao.innerHTML = `<input type="text" class="produto-descricao" value="${produto.descricao}">`;
+        cellValorUnit.innerHTML = `<input type="text" class="produto-valor-unit" value="${formatarMoeda(produto.valorUnit)}" oninput="formatarEntradaMoeda(this)" onblur="formatarCampoMoeda(this); atualizarTotais()">`;
+        cellValorTotal.textContent = formatarMoeda(produto.valorTotal);
+    });
+
+    // Preencher checkboxes de pagamento
+    document.querySelectorAll('input[name="pagamento"]').forEach(el => {
+        el.checked = orcamento.pagamento.includes(el.value);
+    });
+
+    // Mostrar a página de edição e configurar os botões
+    mostrarPagina('form-orcamento');
+    document.getElementById("btnGerarOrcamento").style.display = "none";
+    document.getElementById("btnAtualizarOrcamento").style.display = "inline-block";
+}
+
+function atualizarOrcamento() {
+    if (orcamentoEditando === null) {
+        alert("Nenhum orçamento está sendo editado.");
+        return;
+    }
+
+    const orcamentoIndex = orcamentos.findIndex(o => o.numero === orcamentoEditando);
+    if (orcamentoIndex === -1) {
+        alert("Orçamento não encontrado.");
+        return;
+    }
+
+    // Atualiza os dados do orçamento
+    orcamentos[orcamentoIndex] = {
+        ...orcamentos[orcamentoIndex], // Mantém os dados antigos
+        dataOrcamento: document.getElementById("dataOrcamento").value,
+        dataValidade: document.getElementById("dataValidade").value,
+        cliente: document.getElementById("cliente").value,
+        endereco: document.getElementById("endereco").value,
+        tema: document.getElementById("tema").value,
+        cidade: document.getElementById("cidade").value,
+        telefone: document.getElementById("telefone").value,
+        email: document.getElementById("email").value,
+        cores: document.getElementById("cores").value,
+        produtos: [],
+        pagamento: Array.from(document.querySelectorAll('input[name="pagamento"]:checked')).map(el => el.value),
+        valorFrete: parseFloat(document.getElementById("valorFrete").value.replace(/[^\d,]/g, '').replace(',', '.')),
+        valorOrcamento: parseFloat(document.getElementById("valorOrcamento").value.replace(/[^\d,]/g, '').replace(',', '.')),
+        total: parseFloat(document.getElementById("total").value.replace(/[^\d,]/g, '').replace(',', '.')),
+        observacoes: document.getElementById("observacoes").value,
+    };
+
+    // Atualiza os produtos do orçamento
+    const produtos = document.querySelectorAll("#tabelaProdutos tbody tr");
+    produtos.forEach(row => {
+        orcamentos[orcamentoIndex].produtos.push({
+            quantidade: parseFloat(row.querySelector(".produto-quantidade").value),
+            descricao: row.querySelector(".produto-descricao").value,
+            valorUnit: parseFloat(row.querySelector(".produto-valor-unit").value.replace(/[^\d,]/g, '').replace(',', '.')),
+            valorTotal: parseFloat(row.cells[3].textContent.replace(/[^\d,]/g, '').replace(',', '.'))
+        });
+    });
+
+    // Gerar backup dos dados
+    exportarDados();
+
+    // Salvar dados no localStorage
+    salvarDados();
+
+    // Limpar o formulário e a tabela de produtos
+    document.getElementById("orcamento").reset();
+    limparCamposMoeda();
+    document.querySelector("#tabelaProdutos tbody").innerHTML = "";
+
+    alert("Orçamento atualizado com sucesso!");
+
+    // Resetar o estado de edição e os botões
+    orcamentoEditando = null;
+    document.getElementById("btnGerarOrcamento").style.display = "inline-block";
+    document.getElementById("btnAtualizarOrcamento").style.display = "none";
+
+    // Voltar para a lista de orçamentos
+    mostrarPagina('orcamentos-gerados');
+    mostrarOrcamentosGerados();
 }
 /* ==== FIM SEÇÃO - ORÇAMENTOS GERADOS ==== */
 
@@ -331,10 +473,14 @@ function gerarPedido(numeroOrcamento) {
         return;
     }
 
-    numeroPedido++; // Incrementar numeroPedido antes de usá-lo
+    // Verifica se o orçamento já gerou um pedido
+    if (orcamento.pedidoGerado) {
+        alert("Um pedido já foi gerado para este orçamento.");
+        return;
+    }
 
     const pedido = {
-        numero: gerarNumeroFormatado(numeroPedido), // Usar numeroPedido para gerar o número do pedido
+        numero: gerarNumeroFormatado(numeroPedido),
         ...orcamento, // Copia os dados do orçamento para o pedido
         dataPedido: new Date().toISOString().split('T')[0], // Define a data do pedido como hoje
         dataEntrega: orcamento.dataValidade, // Usar dataValidade como dataEntrega
@@ -344,10 +490,15 @@ function gerarPedido(numeroOrcamento) {
         observacoes: ''
     };
 
-    // Remover campo dataValidade, pois não faz parte do pedido
+    // Remover campos que não fazem parte do pedido
     delete pedido.dataValidade;
+    delete pedido.pedidoGerado;
 
     pedidos.push(pedido);
+    numeroPedido++;
+
+    // Marcar o orçamento como tendo gerado um pedido
+    orcamento.pedidoGerado = true;
 
     // Gerar backup dos dados
     exportarDados();
@@ -358,6 +509,7 @@ function gerarPedido(numeroOrcamento) {
     alert(`Pedido Nº ${pedido.numero} gerado com sucesso a partir do orçamento Nº ${numeroOrcamento}!`);
     mostrarPagina('lista-pedidos');
     mostrarPedidosRealizados();
+    mostrarOrcamentosGerados();
 }
 /* ==== FIM SEÇÃO - GERAR PEDIDO A PARTIR DO ORÇAMENTO ==== */
 
