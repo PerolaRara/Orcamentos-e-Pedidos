@@ -141,7 +141,6 @@ textarea {
     color: #fff; /* Cor do texto nos campos */
 }
 
-
 .form-row:after {
     content: "";
     display: table;
@@ -273,4 +272,3 @@ button:hover {
     }
 }
 /* ==== FIM SEÇÃO - MEDIA QUERIES ==== */
-
