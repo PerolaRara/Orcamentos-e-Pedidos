@@ -19,7 +19,7 @@
         }
 
         #logo-orcamento {
-            max-width: 100px;
+            width: 150px; /* Aumentado 50% do tamanho original de 100px */
             height: auto;
         }
 
@@ -59,6 +59,29 @@
             background-color: #dfb6b0;
             color: white;
         }
+
+        .conditions {
+            margin-top: 40px; /* Espaço maior entre a tabela e as observações */
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .conditions p {
+            margin: 5px 0;
+        }
+
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.8em;
+            color: #777;
+        }
+
+        .separator {
+            border-top: 2px solid #7aa2a9;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -69,7 +92,66 @@
         <hr>
     </div>
     <div id="conteudo-orcamento">
-        <!-- O conteúdo do orçamento será inserido aqui -->
+        <div class="info-orcamento">
+            <p><strong>Orçamento Nº:</strong> 0002/2025</p>
+            <p><strong>Data do Orçamento:</strong> 30/01/2025</p>
+            <p><strong>Validade:</strong> 28/02/2025</p>
+            <p><strong>Cliente:</strong> Fulano de Tal</p>
+            <p><strong>Endereço:</strong> Rua das Amélias, Cuabá/MT</p>
+            <p><strong>Contato:</strong> (65) 99973-0329</p>
+            <p><strong>Tema:</strong> Circo alegre</p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Qtde</th>
+                    <th>Descrição do Produto</th>
+                    <th>Valor Unit.</th>
+                    <th>Valor Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>Enxoval de bebê bordado</td>
+                    <td>R$ 45,50</td>
+                    <td>R$ 45,50</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>Toalhas bordadas</td>
+                    <td>R$ 50,00</td>
+                    <td>R$ 100,00</td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" style="text-align:right;">Subtotal:</td>
+                    <td>R$ 145,50</td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="text-align:right;">Frete:</td>
+                    <td>R$ 15,00</td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="text-align:right;"><strong>Total:</strong></td>
+                    <td><strong>R$ 160,50</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+        <div class="separator"></div>
+        <div class="conditions">
+            <p><strong>Observações:</strong></p>
+            <ol>
+                <li>Trabalhamos com enxoval personalizado com bordado computadorizado.</li>
+                <li>Para o envio da arte, somente após a confirmação do pagamento. Entrada de 50% do valor total.</li>
+                <li>Em caso de desistência, <strong>NÃO SERÁ FEITO ESTORNO DO VALOR</strong>.</li>
+                <li>Após 30 dias do <strong>NÃO PAGAMENTO</strong>, as peças serão vendidas.</li>
+                <li>Serão enviadas 3 opções de imagens para escolher, e em seguida a arte final com o nome será enviada para aprovação.</li>
+                <li>Aceitamos Pix, débito, e crédito (juros por conta do cliente).</li>
+                <li>Entregamos com taxa.</li>
+            </ol>
+        </div>
     </div>
 </body>
 </html>
