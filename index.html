@@ -135,7 +135,8 @@
                         <textarea id="observacoes" name="observacoes" rows="4"></textarea>
                     </div>
                 </div>
-                <button type="button" onclick="gerarOrcamento()">Gerar Orçamento</button>
+                <button type="button" id="btnGerarOrcamento" onclick="gerarOrcamento()">Gerar Orçamento</button>
+                <button type="button" id="btnAtualizarOrcamento" onclick="atualizarOrcamento()" style="display: none;">Atualizar Orçamento</button>
             </form>
         </section>
         <!-- ==== FIM SEÇÃO - FORMULÁRIO DE ORÇAMENTO ==== -->
@@ -152,6 +153,8 @@
                 <input type="number" id="filtroNumeroOrcamento" placeholder="Número do Orçamento">
                 <label for="filtroAnoOrcamento">Ano:</label>
                 <input type="number" id="filtroAnoOrcamento" placeholder="Ano do Orçamento">
+                <label for="filtroClienteOrcamento">Cliente:</label>
+                <input type="text" id="filtroClienteOrcamento" placeholder="Parte do nome do Cliente">
                 <button type="button" onclick="filtrarOrcamentos()">Filtrar</button>
             </div>
             <table id="tabela-orcamentos">
