@@ -14,7 +14,12 @@
     <div class="container">
         <!-- ==== INÍCIO SEÇÃO - CABEÇALHO ==== -->
         <header>
-            <img src="./logo_perola_rara.png" alt="Logo Pérola Rara" id="logo">
+            <div class="top-bar">
+                <div id="ultimoBackup" class="ultimo-backup"></div>
+            </div>
+            <div class="logo-container">
+                <img src="./logo_perola_rara.png" alt="Logo Pérola Rara" id="logo">
+            </div>
             <h1>Pérola Rara</h1>
             <hr class="titulo">
             <nav>
@@ -67,9 +72,15 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="contato">Contato:</label>
-                        <input type="text" id="contato" name="contato" placeholder="Telefone, Email, etc.">
+                        <label for="telefone">Telefone/Celular:</label>
+                        <input type="text" id="telefone" name="telefone" placeholder="Número de Telefone ou Celular">
                     </div>
+                    <div class="form-group">
+                        <label for="email">E-mail:</label>
+                        <input type="email" id="email" name="email" placeholder="Endereço de E-mail">
+                    </div>
+                </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label for="cores">Cores:</label>
                         <input type="text" id="cores" name="cores" placeholder="Cores Preferidas">
@@ -95,23 +106,17 @@
                 <hr class="final-tabela">
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Entrega:</label>
-                        <label><input type="checkbox" name="entrega" value="entrega"> Entrega</label>
-                        <label><input type="checkbox" name="entrega" value="retirada"> Retirada</label>
-                        <label><input type="checkbox" name="entrega" value="correios"> Correios</label>
-                        <label><input type="checkbox" name="entrega" value="motoTaxi"> Moto/Taxi</label>
-                    </div>
-                    <div class="form-group">
                         <label>Pagamento:</label>
                         <label><input type="checkbox" name="pagamento" value="pix"> PIX</label>
-                        <label><input type="checkbox" name="pagamento" value="linkCartao"> Link Cartão</label>
                         <label><input type="checkbox" name="pagamento" value="dinheiro"> Dinheiro</label>
+                        <label><input type="checkbox" name="pagamento" value="cartaoCredito"> Cartão de Crédito</label>
+                        <label><input type="checkbox" name="pagamento" value="cartaoDebito"> Cartão de Débito</label>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="valorFrete">Valor do Frete (R$):</label>
-                        <input type="text" id="valorFrete" name="valorFrete" value="0,00" onblur="formatarCampoMoeda(this); atualizarTotais()">
+                        <input type="text" id="valorFrete" name="valorFrete" value="0,00" oninput="formatarEntradaMoeda(this)" onblur="formatarCampoMoeda(this); atualizarTotais()">
                     </div>
                     <div class="form-group">
                         <label for="valorOrcamento">Valor do Orçamento (R$):</label>
