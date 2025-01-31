@@ -255,6 +255,20 @@ button:hover {
 }
 /* ==== FIM SEÇÃO - PÁGINA DE VISUALIZAÇÃO DO ORÇAMENTO (orcamento.html) ==== */
 
+/* ==== INÍCIO SEÇÃO - BOTÃO LIMPAR PÁGINA ==== */
+nav ul li a[onclick="limparPagina()"] {
+    background-color: #dfb6b0; /* Fundo rosa delicado */
+    padding: 5px 10px; /* Espaçamento interno */
+    border-radius: 10px; /* Bordas arredondadas */
+    color: white; /* Texto branco para contraste */
+    margin-left: 20px; /* Espaço à esquerda para separar dos outros botões */
+}
+
+nav ul li a[onclick="limparPagina()"]:hover {
+    background-color: #c89790; /* Tom mais escuro de rosa no hover */
+}
+/* ==== FIM SEÇÃO - BOTÃO LIMPAR PÁGINA ==== */
+
 /* ==== INÍCIO SEÇÃO - MEDIA QUERIES ==== */
 @media (max-width: 768px) {
     .container {
