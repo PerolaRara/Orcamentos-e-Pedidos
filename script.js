@@ -20,11 +20,12 @@ function formatarMoeda(valor) {
     return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-function formatarCampoMoeda(campo) {
-    let valor = campo.value.replace(/\D/g, '');
-    valor = (valor / 100).toFixed(2);
-    campo.value = formatarMoeda(parseFloat(valor));
-}
+// Esta função não é mais necessária, pois os campos são de texto livre
+// function formatarCampoMoeda(campo) {
+//     let valor = campo.value.replace(/\D/g, '');
+//     valor = (valor / 100).toFixed(2);
+//     campo.value = formatarMoeda(parseFloat(valor));
+// }
 
 function limparCamposMoeda() {
     const camposMoeda = ['valorFrete', 'valorOrcamento', 'total', 'entrada', 'restante', 'lucro',
@@ -48,7 +49,7 @@ function adicionarProduto() {
 
     cellQuantidade.innerHTML = '<input type="number" class="produto-quantidade" value="1" min="1" onchange="atualizarTotais()">';
     cellDescricao.innerHTML = '<input type="text" class="produto-descricao">';
-    cellValorUnit.innerHTML = '<input type="text" class="produto-valor-unit" value="0,00" oninput="formatarEntradaMoeda(this)" onblur="formatarCampoMoeda(this); atualizarTotais()">';
+    cellValorUnit.innerHTML = '<input type="text" class="produto-valor-unit" value="0,00" onblur="atualizarTotais()">';
     cellValorTotal.textContent = formatarMoeda(0);
 }
 
@@ -63,7 +64,7 @@ function adicionarProdutoEdicao() {
 
     cellQuantidade.innerHTML = '<input type="number" class="produto-quantidade" value="1" min="1" onchange="atualizarTotaisEdicao()">';
     cellDescricao.innerHTML = '<input type="text" class="produto-descricao">';
-    cellValorUnit.innerHTML = '<input type="text" class="produto-valor-unit" value="0,00" oninput="formatarEntradaMoeda(this)" onblur="formatarCampoMoeda(this); atualizarTotaisEdicao()">';
+    cellValorUnit.innerHTML = '<input type="text" class="produto-valor-unit" value="0,00" onblur="atualizarTotaisEdicao()">';
     cellValorTotal.textContent = formatarMoeda(0);
 }
 
@@ -73,14 +74,18 @@ function atualizarTotais() {
 
     produtos.forEach(row => {
         const quantidade = parseFloat(row.querySelector(".produto-quantidade").value);
-        const valorUnit = parseFloat(row.querySelector(".produto-valor-unit").value.replace(/[^\d,]/g, '').replace(',', '.'));
+        // Converter o valor para um número válido
+        const valorUnitText = row.querySelector(".produto-valor-unit").value.replace("R$", "").replace(".", "").replace(",", ".");
+        const valorUnit = parseFloat(valorUnitText) || 0;
         const valorTotal = quantidade * valorUnit;
 
         row.cells[3].textContent = formatarMoeda(valorTotal);
         valorTotalOrcamento += valorTotal;
     });
 
-    const valorFrete = parseFloat(document.getElementById("valorFrete").value.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+    // Converter o valor do frete para um número válido
+    const valorFreteText = document.getElementById("valorFrete").value.replace("R$", "").replace(".", "").replace(",", ".");
+    const valorFrete = parseFloat(valorFreteText) || 0;
     const total = valorTotalOrcamento + valorFrete;
 
     document.getElementById("valorOrcamento").value = formatarMoeda(valorTotalOrcamento);
@@ -93,14 +98,18 @@ function atualizarTotaisEdicao() {
 
     produtos.forEach(row => {
         const quantidade = parseFloat(row.querySelector(".produto-quantidade").value);
-        const valorUnit = parseFloat(row.querySelector(".produto-valor-unit").value.replace(/[^\d,]/g, '').replace(',', '.'));
+        // Converter o valor para um número válido
+        const valorUnitText = row.querySelector(".produto-valor-unit").value.replace("R$", "").replace(".", "").replace(",", ".");
+        const valorUnit = parseFloat(valorUnitText) || 0;
         const valorTotal = quantidade * valorUnit;
 
         row.cells[3].textContent = formatarMoeda(valorTotal);
         valorTotalPedido += valorTotal;
     });
 
-    const valorFrete = parseFloat(document.getElementById("valorFreteEdicao").value.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+    // Converter o valor do frete para um número válido
+    const valorFreteText = document.getElementById("valorFreteEdicao").value.replace("R$", "").replace(".", "").replace(",", ".");
+    const valorFrete = parseFloat(valorFreteText) || 0;
     const total = valorTotalPedido + valorFrete;
 
     document.getElementById("valorPedidoEdicao").value = formatarMoeda(valorTotalPedido);
@@ -110,8 +119,11 @@ function atualizarTotaisEdicao() {
 }
 
 function atualizarRestanteEdicao() {
-    const total = parseFloat(document.getElementById("totalEdicao").value.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
-    const entrada = parseFloat(document.getElementById("entradaEdicao").value.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+    // Converter os valores para números válidos
+    const totalText = document.getElementById("totalEdicao").value.replace("R$", "").replace(".", "").replace(",", ".");
+    const entradaText = document.getElementById("entradaEdicao").value.replace("R$", "").replace(".", "").replace(",", ".");
+    const total = parseFloat(totalText) || 0;
+    const entrada = parseFloat(entradaText) || 0;
     const restante = total - entrada;
 
     document.getElementById("restanteEdicao").value = formatarMoeda(restante);
@@ -121,33 +133,12 @@ function gerarNumeroFormatado(numero) {
     return numero.toString().padStart(4, '0') + '/' + anoAtual;
 }
 
-/* ==== NOVA FUNÇÃO PARA FORMATAÇÃO PROGRESSIVA DE MOEDA ==== */
-function formatarEntradaMoeda(input) {
-    // Remove todos os caracteres não numéricos, exceto vírgulas
-    let valor = input.value.replace(/[^0-9,]/g, '');
-
-    // Remove as vírgulas existentes e as substitui por um ponto para formatação
-    valor = valor.replace(/,/g, '.');
-
-    // Converte para número para formatação e volta para string
-    let numero = parseFloat(valor);
-
-    // Verifica se é um número válido
-    if (!isNaN(numero)) {
-        // Formata o número com 2 casas decimais
-        let valorFormatado = numero.toFixed(2);
-
-        // Substitui o ponto por vírgula
-        valorFormatado = valorFormatado.replace('.', ',');
-
-        // Define o novo valor formatado no campo
-        input.value = valorFormatado;
-    } else {
-        // Se não for um número válido, limpa o campo
-        input.value = '';
-    }
-}
+// Esta função não é mais necessária, pois não formatamos mais os campos automaticamente
+// function formatarEntradaMoeda(input) {
+//     // ... (remover o corpo da função)
+// }
 /* ==== FIM DA SEÇÃO - FUNÇÕES AUXILIARES ==== */
+
 
 /* ==== INÍCIO SEÇÃO - GERAÇÃO DE ORÇAMENTO ==== */
 function gerarOrcamento() {
@@ -174,7 +165,8 @@ function gerarOrcamento() {
         valorOrcamento: parseFloat(document.getElementById("valorOrcamento").value.replace(/[^\d,]/g, '').replace(',', '.')),
         total: parseFloat(document.getElementById("total").value.replace(/[^\d,]/g, '').replace(',', '.')),
         observacoes: document.getElementById("observacoes").value,
-        pedidoGerado: false // Adiciona a propriedade para rastrear se um pedido já foi gerado
+        pedidoGerado: false, // Adiciona a propriedade para rastrear se um pedido já foi gerado
+        numeroPedido: null // Inicializa o número do pedido como null
     };
 
     const produtos = document.querySelectorAll("#tabelaProdutos tbody tr");
@@ -285,17 +277,22 @@ function mostrarOrcamentosGerados() {
         const cellData = row.insertCell();
         const cellCliente = row.insertCell();
         const cellTotal = row.insertCell();
+        const cellNumeroPedido = row.insertCell();
         const cellAcoes = row.insertCell();
 
         cellNumero.textContent = orcamento.numero;
         cellData.textContent = orcamento.dataOrcamento;
         cellCliente.textContent = orcamento.cliente;
         cellTotal.textContent = formatarMoeda(orcamento.total);
-        // Modifica a célula de ações para incluir o botão "Editar" e verificar se um pedido já foi gerado
-        cellAcoes.innerHTML = `<button type="button" onclick="editarOrcamento('${orcamento.numero}')">Editar</button>
-                               <button type="button" onclick="exibirOrcamentoEmHTML(orcamentos.find(o => o.numero === '${orcamento.numero}'))">Visualizar</button>`;
-        if (!orcamento.pedidoGerado) {
-            cellAcoes.innerHTML += ` <button type="button" onclick="gerarPedido('${orcamento.numero}')">Gerar Pedido</button>`;
+        cellNumeroPedido.textContent = orcamento.numeroPedido || 'N/A'; // Mostra o número do pedido ou 'N/A' se não houver
+
+        // Define as ações com base no status do orçamento
+        if (orcamento.pedidoGerado) {
+            cellAcoes.innerHTML = `<button type="button" onclick="exibirOrcamentoEmHTML(orcamentos.find(o => o.numero === '${orcamento.numero}'))">Visualizar</button>`;
+        } else {
+            cellAcoes.innerHTML = `<button type="button" onclick="editarOrcamento('${orcamento.numero}')">Editar</button>
+                                   <button type="button" onclick="exibirOrcamentoEmHTML(orcamentos.find(o => o.numero === '${orcamento.numero}'))">Visualizar</button>
+                                   <button type="button" onclick="gerarPedido('${orcamento.numero}')">Gerar Pedido</button>`;
         }
     });
 }
@@ -328,15 +325,26 @@ function atualizarListaOrcamentos(orcamentosFiltrados) {
 
     orcamentosFiltrados.forEach(orcamento => {
         const row = tbody.insertRow();
-        row.insertCell().textContent = orcamento.numero;
-        row.insertCell().textContent = orcamento.dataOrcamento;
-        row.insertCell().textContent = orcamento.cliente;
-        row.insertCell().textContent = formatarMoeda(orcamento.total);
+        const cellNumero = row.insertCell();
+        const cellData = row.insertCell();
+        const cellCliente = row.insertCell();
+        const cellTotal = row.insertCell();
+        const cellNumeroPedido = row.insertCell();
         const cellAcoes = row.insertCell();
-        cellAcoes.innerHTML = `<button type="button" onclick="editarOrcamento('${orcamento.numero}')">Editar</button>
-                               <button type="button" onclick="exibirOrcamentoEmHTML(orcamentos.find(o => o.numero === '${orcamento.numero}'))">Visualizar</button>`;
-        if (!orcamento.pedidoGerado) {
-            cellAcoes.innerHTML += ` <button type="button" onclick="gerarPedido('${orcamento.numero}')">Gerar Pedido</button>`;
+
+        cellNumero.textContent = orcamento.numero;
+        cellData.textContent = orcamento.dataOrcamento;
+        cellCliente.textContent = orcamento.cliente;
+        cellTotal.textContent = formatarMoeda(orcamento.total);
+        cellNumeroPedido.textContent = orcamento.numeroPedido || 'N/A'; // Mostra o número do pedido ou 'N/A' se não houver
+
+        // Define as ações com base no status do orçamento
+        if (orcamento.pedidoGerado) {
+            cellAcoes.innerHTML = `<button type="button" onclick="exibirOrcamentoEmHTML(orcamentos.find(o => o.numero === '${orcamento.numero}'))">Visualizar</button>`;
+        } else {
+            cellAcoes.innerHTML = `<button type="button" onclick="editarOrcamento('${orcamento.numero}')">Editar</button>
+                                   <button type="button" onclick="exibirOrcamentoEmHTML(orcamentos.find(o => o.numero === '${orcamento.numero}'))">Visualizar</button>
+                                   <button type="button" onclick="gerarPedido('${orcamento.numero}')">Gerar Pedido</button>`;
         }
     });
 }
@@ -492,7 +500,9 @@ function gerarPedido(numeroOrcamento) {
 
     // Remover campos que não fazem parte do pedido
     delete pedido.dataValidade;
-    delete pedido.pedidoGerado;
+
+    // Adiciona o número do pedido ao orçamento
+    orcamento.numeroPedido = pedido.numero;
 
     pedidos.push(pedido);
     numeroPedido++;
