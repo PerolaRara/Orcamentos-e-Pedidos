@@ -7,6 +7,8 @@
     <title>Pérola Rara - Gerenciamento de Pedidos</title>
     <link rel="stylesheet" href="./style.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Adicionando a biblioteca SheetJS (xlsx) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script src="./script.js"></script>
 </head>
 <!-- ==== FIM SEÇÃO - HEAD ==== -->
@@ -96,6 +98,7 @@
                                 <th>Descrição do Produto</th>
                                 <th>Valor Unit.</th>
                                 <th>Valor Total</th>
+                                <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -264,6 +267,7 @@
                                 <th>Descrição do Produto</th>
                                 <th>Valor Unit.</th>
                                 <th>Valor Total</th>
+                                <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -275,17 +279,11 @@
                 <hr class="final-tabela">
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Entrega:</label>
-                        <label><input type="checkbox" name="entregaEdicao" value="entrega"> Entrega</label>
-                        <label><input type="checkbox" name="entregaEdicao" value="retirada"> Retirada</label>
-                        <label><input type="checkbox" name="entregaEdicao" value="correios"> Correios</label>
-                        <label><input type="checkbox" name="entregaEdicao" value="motoTaxi"> Moto/Taxi</label>
-                    </div>
-                    <div class="form-group">
                         <label>Pagamento:</label>
                         <label><input type="checkbox" name="pagamentoEdicao" value="pix"> PIX</label>
-                        <label><input type="checkbox" name="pagamentoEdicao" value="linkCartao"> Link Cartão</label>
                         <label><input type="checkbox" name="pagamentoEdicao" value="dinheiro"> Dinheiro</label>
+                        <label><input type="checkbox" name="pagamentoEdicao" value="cartaoCredito"> Cartão de Crédito</label>
+                        <label><input type="checkbox" name="pagamentoEdicao" value="cartaoDebito"> Cartão de Débito</label>
                     </div>
                 </div>
                 <div class="form-row">
@@ -338,9 +336,9 @@
                 <button type="button" onclick="filtrarPedidosRelatorio()">Gerar Relatório</button>
             </div>
             <div id="relatorio-conteudo">
-                <!-- Conteúdo do relatório será exibido aqui -->
+                <!-- Tabela de relatório será inserida aqui -->
             </div>
-            <button type="button" onclick="gerarRelatorioCSV()">Exportar Relatório (CSV)</button>
+            <button type="button" onclick="gerarRelatorioXLSX()">Exportar Relatório (XLSX)</button>
         </section>
         <!-- ==== FIM SEÇÃO - RELATÓRIO ==== -->
 
@@ -373,7 +371,5 @@
         </section>
         <!-- ==== FIM SEÇÃO - VISUALIZAR ORÇAMENTO ==== -->
     </div>
-
-    <script src="./script.js"></script>
 </body>
 </html>
