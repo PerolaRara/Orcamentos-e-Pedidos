@@ -180,6 +180,33 @@ th {
     color: white;
 }
 
+/* Novas classes para a tabela de relatório */
+.relatorio-table {
+    width: 80%;
+    margin: 20px auto;
+    border-collapse: collapse;
+}
+
+.relatorio-table th,
+.relatorio-table td {
+    padding: 10px;
+    text-align: center;
+    border: 1px solid #ccc;
+}
+
+.relatorio-table th {
+    background-color: #cce5e9; /* Cor mais clara da paleta para o cabeçalho (25% mais claro que #7aa2a9) */
+    color: #333;
+}
+
+.relatorio-table tr:nth-child(even) {
+    background-color: #f0f8fa; /* Cor mais clara da paleta para linhas pares (25% mais claro que #dfb6b0) */
+}
+
+.relatorio-table tr:nth-child(odd) {
+    background-color: #f8f8f8; /* Fundo branco para linhas ímpares */
+}
+
 .table-responsive {
     overflow-x: auto;
 }
