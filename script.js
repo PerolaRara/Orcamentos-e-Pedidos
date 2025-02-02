@@ -51,11 +51,13 @@ function adicionarProduto() {
     const cellDescricao = newRow.insertCell();
     const cellValorUnit = newRow.insertCell();
     const cellValorTotal = newRow.insertCell();
+    const cellAcoes = newRow.insertCell();
 
     cellQuantidade.innerHTML = '<input type="number" class="produto-quantidade" value="1" min="1" onchange="atualizarTotais()">';
     cellDescricao.innerHTML = '<input type="text" class="produto-descricao">';
     cellValorUnit.innerHTML = '<input type="text" class="produto-valor-unit" value="0,00" oninput="formatarEntradaMoeda(this)" onblur="atualizarTotais()">';
     cellValorTotal.textContent = formatarMoeda(0);
+    cellAcoes.innerHTML = '<button type="button" onclick="excluirProduto(this)">Excluir</button>';
 }
 
 function adicionarProdutoEdicao() {
@@ -66,11 +68,25 @@ function adicionarProdutoEdicao() {
     const cellDescricao = newRow.insertCell();
     const cellValorUnit = newRow.insertCell();
     const cellValorTotal = newRow.insertCell();
+    const cellAcoes = newRow.insertCell();
 
     cellQuantidade.innerHTML = '<input type="number" class="produto-quantidade" value="1" min="1" onchange="atualizarTotaisEdicao()">';
     cellDescricao.innerHTML = '<input type="text" class="produto-descricao">';
     cellValorUnit.innerHTML = '<input type="text" class="produto-valor-unit" value="0,00" oninput="formatarEntradaMoeda(this)" onblur="atualizarTotaisEdicao()">';
     cellValorTotal.textContent = formatarMoeda(0);
+    cellAcoes.innerHTML = '<button type="button" onclick="excluirProdutoEdicao(this)">Excluir</button>';
+}
+
+function excluirProduto(botaoExcluir) {
+    const row = botaoExcluir.parentNode.parentNode;
+    row.remove();
+    atualizarTotais();
+}
+
+function excluirProdutoEdicao(botaoExcluir) {
+    const row = botaoExcluir.parentNode.parentNode;
+    row.remove();
+    atualizarTotaisEdicao();
 }
 
 function atualizarTotais() {
@@ -138,10 +154,13 @@ function gerarOrcamento() {
         return;
     }
 
+    const dataOrcamento = document.getElementById("dataOrcamento").value;
+    const dataValidade = document.getElementById("dataValidade").value;
+
     const orcamento = {
         numero: gerarNumeroFormatado(numeroOrcamento),
-        dataOrcamento: document.getElementById("dataOrcamento").value,
-        dataValidade: document.getElementById("dataValidade").value,
+        dataOrcamento: dataOrcamento,
+        dataValidade: dataValidade,
         cliente: document.getElementById("cliente").value,
         endereco: document.getElementById("endereco").value,
         tema: document.getElementById("tema").value,
@@ -190,11 +209,26 @@ function exibirOrcamentoEmHTML(orcamento) {
     janelaOrcamento.addEventListener('load', () => {
         const conteudoOrcamento = janelaOrcamento.document.getElementById("conteudo-orcamento");
 
+        // Formatar data do orçamento para DD/MM/AAAA
+        const dataOrcamentoFormatada = orcamento.dataOrcamento.split('-').reverse().join('/');
+
+        // Formatar data de validade para DD/MM/AAAA
+        const dataValidadeFormatada = orcamento.dataValidade.split('-').reverse().join('/');
+
+        // Formatar opções de pagamento
+        const pagamentoFormatado = orcamento.pagamento.map(pag => {
+            if (pag === 'pix') return 'PIX';
+            if (pag === 'dinheiro') return 'Dinheiro';
+            if (pag === 'cartaoCredito') return 'Cartão de Crédito';
+            if (pag === 'cartaoDebito') return 'Cartão de Débito';
+            return pag;
+        }).join(', ');
+
         let html = `
             <h2>Orçamento Nº ${orcamento.numero}</h2>
             <div class="info-orcamento">
-                <strong>Data do Orçamento:</strong> ${orcamento.dataOrcamento}<br>
-                <strong>Data de Validade:</strong> ${orcamento.dataValidade}<br>
+                <strong>Data do Orçamento:</strong> ${dataOrcamentoFormatada}<br>
+                <strong>Data de Validade:</strong> ${dataValidadeFormatada}<br>
                 <strong>Cliente:</strong> ${orcamento.cliente}<br>
                 <strong>Endereço:</strong> ${orcamento.endereco}<br>
                 <strong>Cidade:</strong> ${orcamento.cidade}<br>
@@ -230,8 +264,9 @@ function exibirOrcamentoEmHTML(orcamento) {
         html += `
                 </tbody>
             </table>
+            <div class="espaco-tabela"></div>
             <div class="info-orcamento">
-                <strong>Pagamento:</strong> ${orcamento.pagamento.join(', ')}<br>
+                <strong>Pagamento:</strong> ${pagamentoFormatado}<br>
                 <strong>Valor do Frete:</strong> ${formatarMoeda(orcamento.valorFrete)}<br>
                 <strong>Valor do Orçamento:</strong> ${formatarMoeda(orcamento.valorOrcamento)}<br>
                 <strong>Total:</strong> ${formatarMoeda(orcamento.total)}<br>
@@ -362,11 +397,13 @@ function editarOrcamento(numeroOrcamento) {
         const cellDescricao = row.insertCell();
         const cellValorUnit = row.insertCell();
         const cellValorTotal = row.insertCell();
+        const cellAcoes = row.insertCell();
 
         cellQuantidade.innerHTML = `<input type="number" class="produto-quantidade" value="${produto.quantidade}" min="1" onchange="atualizarTotais()">`;
         cellDescricao.innerHTML = `<input type="text" class="produto-descricao" value="${produto.descricao}">`;
         cellValorUnit.innerHTML = `<input type="text" class="produto-valor-unit" value="${formatarMoeda(produto.valorUnit)}" oninput="formatarEntradaMoeda(this)" onblur="atualizarTotais()">`;
         cellValorTotal.textContent = formatarMoeda(produto.valorTotal);
+        cellAcoes.innerHTML = '<button type="button" onclick="excluirProduto(this)">Excluir</button>';
     });
 
     document.querySelectorAll('input[name="pagamento"]').forEach(el => {
@@ -463,7 +500,7 @@ function gerarPedido(numeroOrcamento) {
             ...p,
             valorTotal: p.quantidade * p.valorUnit
         })),
-        observacoes: '' // Limpa as observações do orçamento
+        observacoes: orcamento.observacoes // COPIANDO OBSERVAÇÕES DO ORÇAMENTO PARA O PEDIDO
     };
 
     delete pedido.dataValidade;
@@ -582,17 +619,16 @@ function editarPedido(numeroPedido) {
         const cellDescricao = row.insertCell();
         const cellValorUnit = row.insertCell();
         const cellValorTotal = row.insertCell();
+        const cellAcoes = row.insertCell();
 
         cellQuantidade.innerHTML = `<input type="number" class="produto-quantidade" value="${produto.quantidade}" min="1" onchange="atualizarTotaisEdicao()">`;
         cellDescricao.innerHTML = `<input type="text" class="produto-descricao" value="${produto.descricao}">`;
         cellValorUnit.innerHTML = `<input type="text" class="produto-valor-unit" value="${formatarMoeda(produto.valorUnit)}" oninput="formatarEntradaMoeda(this)" onblur="atualizarTotaisEdicao()">`;
         cellValorTotal.textContent = formatarMoeda(produto.valorTotal);
+        cellAcoes.innerHTML = '<button type="button" onclick="excluirProdutoEdicao(this)">Excluir</button>';
     });
 
-    // Preencher checkboxes de entrega e pagamento (com verificação de existência)
-    const entregaCheckboxes = document.querySelectorAll('input[name="entregaEdicao"]');
-    entregaCheckboxes.forEach(el => el.checked = pedido.entrega && pedido.entrega.includes(el.value));
-
+    // Preencher checkboxes de pagamento (com verificação de existência)
     const pagamentoCheckboxes = document.querySelectorAll('input[name="pagamentoEdicao"]');
     pagamentoCheckboxes.forEach(el => el.checked = pedido.pagamento && pedido.pagamento.includes(el.value));
 
@@ -601,7 +637,8 @@ function editarPedido(numeroPedido) {
 }
 
 function atualizarPedido() {
-    const numeroPedido = document.querySelector("#tabela-pedidos tbody tr:focus-within td:first-child").textContent;
+    // CORRIGINDO OBTENÇÃO DO NÚMERO DO PEDIDO
+    const numeroPedido = document.getElementById("tabela-pedidos").querySelector('tbody tr td:first-child').textContent;
     const pedidoIndex = pedidos.findIndex(p => p.numero === numeroPedido);
 
     if (pedidoIndex === -1) {
@@ -610,6 +647,7 @@ function atualizarPedido() {
     }
 
     const pedidoAtualizado = {
+        // ADICIONANDO O NÚMERO DO PEDIDO
         numero: numeroPedido,
         dataPedido: document.getElementById("dataPedidoEdicao").value,
         dataEntrega: document.getElementById("dataEntregaEdicao").value,
@@ -617,10 +655,11 @@ function atualizarPedido() {
         endereco: document.getElementById("enderecoEdicao").value,
         tema: document.getElementById("temaEdicao").value,
         cidade: document.getElementById("cidadeEdicao").value,
-        contato: document.getElementById("contatoEdicao").value,
+        // CORRIGINDO NOME DO CAMPO (ERA contatoEdicao)
+        telefone: document.getElementById("contatoEdicao").value,
         cores: document.getElementById("coresEdicao").value,
         produtos: [],
-        entrega: Array.from(document.querySelectorAll('input[name="entregaEdicao"]:checked')).map(el => el.value),
+        // REMOVENDO O CAMPO entrega
         pagamento: Array.from(document.querySelectorAll('input[name="pagamentoEdicao"]:checked')).map(el => el.value),
         valorFrete: converterMoedaParaNumero(document.getElementById("valorFreteEdicao").value),
         valorPedido: converterMoedaParaNumero(document.getElementById("valorPedidoEdicao").value),
@@ -641,6 +680,7 @@ function atualizarPedido() {
         });
     });
 
+    // ATUALIZANDO O PEDIDO NA LISTA
     pedidos[pedidoIndex] = pedidoAtualizado;
 
     exportarDados();
@@ -650,6 +690,7 @@ function atualizarPedido() {
     mostrarPagina('lista-pedidos');
     mostrarPedidosRealizados();
 }
+
 /* ==== FIM SEÇÃO - PEDIDOS REALIZADOS ==== */
 
 /* ==== INÍCIO SEÇÃO - RELATÓRIO ==== */
@@ -658,14 +699,17 @@ function filtrarPedidosRelatorio() {
     const dataFim = document.getElementById('filtroDataFim').value;
 
     const pedidosFiltrados = pedidos.filter(pedido => {
-        return pedido.dataPedido >= dataInicio && pedido.dataPedido <= dataFim;
+        const dataPedido = new Date(pedido.dataPedido);
+        const inicio = dataInicio ? new Date(dataInicio) : new Date('1970-01-01'); // Data mínima
+        const fim = dataFim ? new Date(dataFim) : new Date('2100-01-01'); // Data máxima
+
+        return dataPedido >= inicio && dataPedido <= fim;
     });
 
     gerarRelatorio(pedidosFiltrados);
 }
 
 function gerarRelatorio(pedidosFiltrados) {
-    let relatorio = '';
     let totalPedidos = 0;
     let totalFrete = 0;
     let totalLucro = 0;
@@ -676,25 +720,44 @@ function gerarRelatorio(pedidosFiltrados) {
         totalLucro += pedido.lucro;
     });
 
-    relatorio += `<p>Total de Pedidos: ${formatarMoeda(totalPedidos)}</p>`;
-    relatorio += `<p>Total de Frete: ${formatarMoeda(totalFrete)}</p>`;
-    relatorio += `<p>Total de Lucro: ${formatarMoeda(totalLucro)}</p>`;
+    const quantidadePedidos = pedidosFiltrados.length;
 
-    document.getElementById('relatorio-conteudo').innerHTML = relatorio;
+    const relatorioHTML = `
+        <table class="relatorio-table">
+            <thead>
+                <tr>
+                    <th>Total de Pedidos</th>
+                    <th>Total de Frete</th>
+                    <th>Total de Lucro</th>
+                    <th>Quantidade de Pedidos</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>${formatarMoeda(totalPedidos)}</td>
+                    <td>${formatarMoeda(totalFrete)}</td>
+                    <td>${formatarMoeda(totalLucro)}</td>
+                    <td>${quantidadePedidos}</td>
+                </tr>
+            </tbody>
+        </table>
+    `;
+
+    document.getElementById('relatorio-conteudo').innerHTML = relatorioHTML;
 }
 
-function gerarRelatorioCSV() {
-    let csv = 'Número do Pedido,Data do Pedido,Cliente,Total,Frete,Lucro\n';
+function gerarRelatorioXLSX() {
+    // Criar uma nova pasta de trabalho
+    const wb = XLSX.utils.book_new();
 
-    pedidos.forEach(pedido => {
-        csv += `${pedido.numero},${pedido.dataPedido},${pedido.cliente},${pedido.total},${pedido.valorFrete},${pedido.lucro}\n`;
-    });
+    // Criar uma nova planilha
+    const ws = XLSX.utils.table_to_sheet(document.querySelector('.relatorio-table'));
 
-    const hiddenElement = document.createElement('a');
-    hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
-    hiddenElement.target = '_blank';
-    hiddenElement.download = 'relatorio_pedidos.csv';
-    hiddenElement.click();
+    // Adicionar a planilha à pasta de trabalho
+    XLSX.utils.book_append_sheet(wb, ws, "Relatorio");
+
+    // Gerar o arquivo XLSX e iniciar o download
+    XLSX.writeFile(wb, "relatorio_pedidos.xlsx");
 }
 /* ==== FIM SEÇÃO - RELATÓRIO ==== */
 
