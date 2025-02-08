@@ -97,6 +97,15 @@ nav ul li {
 nav ul li a {
     color: #7aa2a9;
     text-decoration: none;
+    display: inline-block; /* Melhor para aplicar padding e transição */
+    padding: 10px 15px; /* Aumentei um pouco o padding */
+    transition: background-color 0.3s ease, color 0.3s ease; /* Transição suave para cor também */
+    border-radius: 5px; /* Bordas levemente arredondadas (opcional) */
+}
+
+nav ul li a:hover { /* Estilo de hover aprimorado */
+    background-color: #e8d7d4; /* Rosa do precificacao.css */
+    color: #333; /* Escurece a cor do texto no hover (melhor contraste) */
 }
 /* ==== FIM SEÇÃO - CABEÇALHO (PÁGINA PRINCIPAL) ==== */
 
