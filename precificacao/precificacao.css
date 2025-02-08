@@ -499,3 +499,19 @@ td {
   margin-left: auto;
   margin-right: auto;
 }
+
+/* CSS SPECIFIC FOR BACKUP PANEL IN PRECIFICAÇÃO PAGE - ADICIONADO */
+#ultimoBackup {
+    display: block !important; /* Garante que seja exibido */
+    visibility: visible !important; /* Garante visibilidade */
+    opacity: 1 !important; /* Garante opacidade */
+    position: relative; /* Ou static, dependendo do layout */
+    font-size: 0.8em; /* Tamanho da fonte menor para não chamar muita atenção */
+    color: #666; /* Cor cinza, menos proeminente que o texto principal */
+    padding: 5px 10px; /* Espaçamento interno para o texto respirar */
+    border: 1px solid #ccc; /* Borda fina e cinza clara */
+    border-radius: 5px; /* Cantos arredondados para um visual mais suave */
+    background-color: #f5f5f5; /* Fundo cinza claro, levemente diferente do fundo da página */
+    text-align: center; /* Centraliza o texto se necessário */
+    margin-top: 10px; /* Ajuste a margem superior conforme necessário */
+}
