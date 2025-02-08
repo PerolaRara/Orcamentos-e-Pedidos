@@ -5,6 +5,32 @@ let numeroOrcamento = 1;
 let numeroPedido = 1;
 const anoAtual = new Date().getFullYear();
 let orcamentoEditando = null; // Variável para controlar se está editando um orçamento
+
+// Variáveis da precificação (precisam estar aqui para o escopo global)
+let materiais = [];
+let maoDeObra = { salario: 0, horas: 220, valorHora: 0, incluirFerias13o: false, custoFerias13o: 0 };
+let custosIndiretosPredefinidosBase = [ // Base, nunca modificada diretamente
+    { descricao: "Energia elétrica", valorMensal: 0 },
+    { descricao: "Água", valorMensal: 0 },
+    { descricao: "Gás", valorMensal: 0 },
+    { descricao: "Aluguel do espaço", valorMensal: 0 },
+    { descricao: "Depreciação de máquinas e equipamentos", valorMensal: 0 },
+    { descricao: "Manutenção predial e de equipamentos", valorMensal: 0 },
+    { descricao: "Despesas com segurança", valorMensal: 0 },
+    { descricao: "Limpeza e conservação", valorMensal: 0 },
+    { descricao: "Material de escritório", valorMensal: 0 },
+    { descricao: "Impostos e taxas indiretos", valorMensal: 0 },
+    { descricao: "Marketing institucional", valorMensal: 0 },
+    { descricao: "Transporte e logística", valorMensal: 0 },
+    { descricao: "Despesas com utilidades", valorMensal: 0 },
+    { descricao: "Demais custos administrativos", valorMensal: 0 }
+];
+let custosIndiretosPredefinidos = JSON.parse(JSON.stringify(custosIndiretosPredefinidosBase)); // Cópia de trabalho
+let custosIndiretosAdicionais = [];
+let produtos = [];
+let taxaCredito = {percentual: 5, incluir: false};
+let margemLucroPadrao = 50;
+
 /* ==== FIM SEÇÃO - VARIÁVEIS GLOBAIS ==== */
 
 /* ==== INÍCIO SEÇÃO - CARREGAR DADOS DO LOCALSTORAGE ==== */
@@ -12,6 +38,21 @@ document.addEventListener('DOMContentLoaded', () => {
     carregarDados();
     mostrarPagina('form-orcamento');
     atualizarPainelUltimoBackup();
+
+     // Carrega explicitamente os dados de precificação *se* estiver na página de precificação.
+    if (window.location.pathname.endsWith('precificacao.html')) {
+        carregarDadosPrecificacao(); // Chama a função de precificacao.js
+         // --- INICIALIZAÇÃO DA MARGEM DE LUCRO E TAXA DE CRÉDITO ---
+        document.getElementById('margem-lucro-final').value = margemLucroPadrao;
+        document.getElementById('taxa-credito-percentual').value = taxaCredito.percentual;
+
+        // --- INICIALIZA O ESTADO DOS RADIOS DA TAXA ---
+        if (taxaCredito.incluir) {
+            document.getElementById('incluir-taxa-credito-sim').checked = true;
+        } else {
+            document.getElementById('incluir-taxa-credito-nao').checked = true;
+        }
+    }
 });
 /* ==== FIM SEÇÃO - CARREGAR DADOS DO LOCALSTORAGE ==== */
 
@@ -193,8 +234,8 @@ function gerarOrcamento() {
 
     exibirOrcamentoEmHTML(orcamento);
 
-    exportarDados();
-    salvarDados();
+    exportarDados(); // <--- Backup unificado!
+    //salvarDados(); Já não é mais necessário, o exportarDados exporta tudo.
 
     document.getElementById("orcamento").reset();
     limparCamposMoeda();
@@ -456,8 +497,8 @@ function atualizarOrcamento() {
         });
     });
 
-    exportarDados();
-    salvarDados();
+    exportarDados(); // <-- Backup unificado!
+    //salvarDados(); Já não é mais necessário.
 
     document.getElementById("orcamento").reset();
     limparCamposMoeda();
@@ -512,8 +553,8 @@ function gerarPedido(numeroOrcamento) {
 
     orcamento.pedidoGerado = true;
 
-    exportarDados();
-    salvarDados();
+    exportarDados(); // <-- Backup unificado
+    //salvarDados();  Já não é mais necessário
 
     alert(`Pedido Nº ${pedido.numero} gerado com sucesso a partir do orçamento Nº ${numeroOrcamento}!`);
     mostrarPagina('lista-pedidos');
@@ -647,7 +688,7 @@ function atualizarPedido() {
     }
 
     const pedidoAtualizado = {
-        // ADICIONANDO O NÚMERO DO PEDIDO
+               // ADICIONANDO O NÚMERO DO PEDIDO
         numero: numeroPedido,
         dataPedido: document.getElementById("dataPedidoEdicao").value,
         dataEntrega: document.getElementById("dataEntregaEdicao").value,
@@ -683,8 +724,8 @@ function atualizarPedido() {
     // ATUALIZANDO O PEDIDO NA LISTA
     pedidos[pedidoIndex] = pedidoAtualizado;
 
-    exportarDados();
-    salvarDados();
+    exportarDados();  // <-- Backup Unificado
+    //salvarDados();  Já não é mais necessário.
 
     alert("Pedido atualizado com sucesso!");
     mostrarPagina('lista-pedidos');
@@ -763,7 +804,23 @@ function gerarRelatorioXLSX() {
 
 /* ==== INÍCIO SEÇÃO - IMPORTAR/EXPORTAR ==== */
 function exportarDados() {
-    const dadosParaExportar = JSON.stringify({ orcamentos, pedidos, numeroOrcamento, numeroPedido });
+    const dadosParaExportar = JSON.stringify({
+        orcamentos,
+        pedidos,
+        numeroOrcamento,
+        numeroPedido,
+        // Adiciona os dados de precificação:
+        precificacao: {
+            materiais,
+            maoDeObra,
+            custosIndiretosPredefinidos,
+            custosIndiretosAdicionais,
+            produtos,
+            taxaCredito,
+            margemLucroPadrao,
+        }
+    });
+
     const blob = new Blob([dadosParaExportar], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
 
@@ -804,7 +861,21 @@ function importarDados() {
                 numeroOrcamento = dadosImportados.numeroOrcamento || 1;
                 numeroPedido = dadosImportados.numeroPedido || 1;
 
-                salvarDados();
+                // Extrai os dados de precificação:
+                if (dadosImportados.precificacao) {
+                    materiais = dadosImportados.precificacao.materiais || [];
+                    maoDeObra = dadosImportados.precificacao.maoDeObra || { salario: 0, horas: 220, valorHora: 0, incluirFerias13o: false, custoFerias13o: 0 };
+                    custosIndiretosPredefinidos = dadosImportados.precificacao.custosIndiretosPredefinidos || JSON.parse(JSON.stringify(custosIndiretosPredefinidosBase));
+                    custosIndiretosAdicionais = dadosImportados.precificacao.custosIndiretosAdicionais || [];
+                    produtos = dadosImportados.precificacao.produtos || [];
+                    taxaCredito = dadosImportados.precificacao.taxaCredito || {percentual: 5, incluir: false};
+                    margemLucroPadrao = dadosImportados.precificacao.margemLucroPadrao || 50;
+                     //Outros contadores e flags...
+                }
+
+
+                //salvarDados(); Não mais necessário, já que os dados da precificação são salvos.
+                salvarDadosPrecificacao(); // <--- IMPORTANTE! Salva os dados da precificação no localStorage, separadamente.
 
                 const match = nomeArquivo.match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})/);
                 if (match) {
@@ -816,6 +887,27 @@ function importarDados() {
                 alert('Dados importados com sucesso!');
                 mostrarPagina('form-orcamento');
                 atualizarPainelUltimoBackup();
+
+                // Recarrega a interface da precificação
+                if(window.location.pathname.endsWith('precificacao.html')){ //Verifica se está na página de precificação
+                    atualizarTabelaMateriaisInsumos();
+                    carregarCustosIndiretosPredefinidos(); //E outras funções de atualização de exibição
+                    atualizarTabelaProdutosCadastrados();
+                    calcularCustos(); //Recalcular tudo!
+
+                     // --- INICIALIZAÇÃO DA MARGEM DE LUCRO E TAXA DE CRÉDITO ---
+                    document.getElementById('margem-lucro-final').value = margemLucroPadrao;
+                    document.getElementById('taxa-credito-percentual').value = taxaCredito.percentual;
+
+                    // --- INICIALIZA O ESTADO DOS RADIOS DA TAXA ---
+                    if (taxaCredito.incluir) {
+                        document.getElementById('incluir-taxa-credito-sim').checked = true;
+                    } else {
+                        document.getElementById('incluir-taxa-credito-nao').checked = true;
+                    }
+                }
+
+
             } catch (erro) {
                 alert('Erro ao importar dados: ' + erro.message);
             }
@@ -854,12 +946,16 @@ function mostrarPagina(idPagina) {
     document.getElementById(idPagina).style.display = 'block';
 }
 
+// ---- Função salvarDados() e carregarDados() ----
+//Já não são mais necessárias estarem aqui, uma vez que os dados da precificação já estão sendo salvos.
+/*
 function salvarDados() {
     localStorage.setItem('orcamentos', JSON.stringify(orcamentos));
     localStorage.setItem('pedidos', JSON.stringify(pedidos));
     localStorage.setItem('numeroOrcamento', numeroOrcamento);
     localStorage.setItem('numeroPedido', numeroPedido);
 }
+*/
 
 function carregarDados() {
     orcamentos = JSON.parse(localStorage.getItem('orcamentos')) || [];
@@ -870,7 +966,7 @@ function carregarDados() {
 
 function limparPagina() {
     if (confirm("Tem certeza que deseja limpar todos os dados da página? Esta ação é irreversível.")) {
-        localStorage.clear();
+        localStorage.clear(); // Limpa *todo* o localStorage
         orcamentos = [];
         pedidos = [];
         numeroOrcamento = 1;
@@ -899,6 +995,33 @@ function limparPagina() {
         }
         if (document.getElementById("lista-pedidos").style.display === 'block') {
             mostrarPedidosRealizados();
+        }
+
+        //Reseta as variáveis da precificação também:
+        materiais = [];
+        maoDeObra = { salario: 0, horas: 220, valorHora: 0, incluirFerias13o: false, custoFerias13o: 0 };
+        custosIndiretosPredefinidos = JSON.parse(JSON.stringify(custosIndiretosPredefinidosBase)); //Restaura a partir da base.
+        custosIndiretosAdicionais = [];
+        produtos = [];
+        taxaCredito = {percentual: 5, incluir: false};
+        margemLucroPadrao = 50;
+        //Outros contadores/flags
+
+        // ... (atualizar interfaces) ...
+          if(window.location.pathname.endsWith('precificacao.html')){ //Verifica se está na página de precificação
+            atualizarTabelaMateriaisInsumos();
+            carregarCustosIndiretosPredefinidos(); //E outras funções de atualização de exibição
+            atualizarTabelaProdutosCadastrados();
+            calcularCustos(); //Recalcular tudo!
+
+            document.getElementById('margem-lucro-final').value = margemLucroPadrao;
+            document.getElementById('taxa-credito-percentual').value = taxaCredito.percentual;
+
+            if (taxaCredito.incluir) {
+                document.getElementById('incluir-taxa-credito-sim').checked = true;
+            } else {
+                document.getElementById('incluir-taxa-credito-nao').checked = true;
+            }
         }
     }
 }
