@@ -286,7 +286,7 @@
             <input type="number" id="margem-lucro-final" name="margem-lucro-final" step="0.01" required value="0" onchange="calcularPrecoVendaFinal()">
         </div>
 
-        <div class="section total">
+           <div class="section total">
             <span>Total (com Margem de Lucro):</span>
             <span id="total-final">R$ 0,00</span>
         </div>
@@ -315,6 +315,7 @@
 <!-- Fim da Seção Cálculo da Precificação -->
 
 <script src="precificacao.js"></script>
+<script src="../script.js"></script>  <!-- script.js DEPOIS de precificacao.js -->
 <script>
     // Carrega a seção de Cálculo da Precificação ao iniciar a página
     window.onload = function() {
