@@ -873,10 +873,6 @@ function importarDados() {
                      //Outros contadores e flags...
                 }
 
-
-                //salvarDados(); Não mais necessário, já que os dados da precificação são salvos.
-                salvarDadosPrecificacao(); // <--- IMPORTANTE! Salva os dados da precificação no localStorage, separadamente.
-
                 const match = nomeArquivo.match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})/);
                 if (match) {
                     const [, ano, mes, dia, hora, minuto] = match;
@@ -888,8 +884,9 @@ function importarDados() {
                 mostrarPagina('form-orcamento');
                 atualizarPainelUltimoBackup();
 
-                // Recarrega a interface da precificação
-                if(window.location.pathname.endsWith('precificacao.html')){ //Verifica se está na página de precificação
+                // Recarrega a interface da precificação e salva os dados *se* estiver na página de precificação.
+                if(window.location.pathname.endsWith('precificacao.html')){
+                    salvarDadosPrecificacao(); // <-- AQUI! Chamada movida para cá.
                     atualizarTabelaMateriaisInsumos();
                     carregarCustosIndiretosPredefinidos(); //E outras funções de atualização de exibição
                     atualizarTabelaProdutosCadastrados();
@@ -919,7 +916,6 @@ function importarDados() {
     }
 }
 /* ==== FIM SEÇÃO - IMPORTAR/EXPORTAR ==== */
-
 /* ==== INÍCIO SEÇÃO - PAINEL ÚLTIMO BACKUP ==== */
 function atualizarPainelUltimoBackup() {
     const ultimoBackup = JSON.parse(localStorage.getItem('ultimoBackup'));
@@ -1026,3 +1022,4 @@ function limparPagina() {
     }
 }
 /* ==== FIM SEÇÃO - FUNÇÕES DE CONTROLE DE PÁGINA ==== */
+
