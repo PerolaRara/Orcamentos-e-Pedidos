@@ -184,6 +184,9 @@ function cadastrarMaterialInsumo() {
     // 6. Garante que o placeholder do comprimento esteja correto (cm).
     document.getElementById('comprimento-cm').placeholder = "Comprimento (cm)";
 
+    salvarDadosPrecificacao(); // <-- Salva no localStorage
+    exportarDados();         // <-- Faz o backup (usando a função de script.js)
+
 }
 
 /* Atualizar a tabela de Materiais e Insumos */
@@ -296,6 +299,8 @@ function editarMaterialInsumo(index) {
 function removerMaterialInsumo(index) {
     materiais.splice(index, 1);
     atualizarTabelaMateriaisInsumos();
+    salvarDadosPrecificacao(); // <-- Salva no localStorage
+    exportarDados();         // <-- Faz o backup (usando a função de script.js)
 }
 
 // --- Mão de Obra ---
@@ -357,6 +362,9 @@ function salvarMaoDeObra() {
 
      atualizarTabelaCustosIndiretos(); // <---  Atualiza após salvar
      calcularCustos(); // Importante para atualizar a seção de cálculo
+
+    salvarDadosPrecificacao(); // <-- Salva no localStorage
+    exportarDados();         // <-- Faz o backup (usando a função de script.js)
 }
 
 function editarMaoDeObra() {
@@ -430,6 +438,8 @@ function salvarCustoIndiretoPredefinido(index) {
         }
         atualizarTabelaCustosIndiretos();
         calcularCustos(); // <-- Importante! Recalcula após salvar custo indireto
+         salvarDadosPrecificacao(); // <-- Salva no localStorage
+        exportarDados();         // <-- Faz o backup (usando a função de script.js)
     } else {
         alert("Por favor, insira um valor numérico válido.");
     }
@@ -472,6 +482,8 @@ function salvarNovoCustoIndiretoLista(botao) {
         }
         atualizarTabelaCustosIndiretos(); // Atualiza a tabela
         calcularCustos();  // <-- Importante!
+        salvarDadosPrecificacao(); // <-- Salva no localStorage
+        exportarDados();         // <-- Faz o backup
 
     } else {
         alert("Por favor, preencha a descrição e insira um valor numérico válido.");
@@ -487,6 +499,8 @@ function removerNovoCustoIndiretoLista(botaoRemover) {
     listItem.remove();
     atualizarTabelaCustosIndiretos();
     calcularCustos(); // <-- Importante!
+    salvarDadosPrecificacao(); // <-- Salva no localStorage
+    exportarDados();         // <-- Faz o backup
 }
 
 function atualizarTabelaCustosIndiretos() {
@@ -563,6 +577,8 @@ function zerarCustoIndireto(indexOuTempIndex, tipo) {
     }
     atualizarTabelaCustosIndiretos(); // Atualiza a tabela após zerar
     calcularCustos(); // <-- Importante!
+    salvarDadosPrecificacao(); // <-- Salva no localStorage
+    exportarDados();         // <-- Faz o backup
 }
 
 function buscarCustosIndiretosCadastrados() {
@@ -652,8 +668,7 @@ function cadastrarProduto() {
         const quantidadeInput = linha.cells[4].querySelector('.quantidade-input');  // Célula 4
         let quantidadeMaterial = quantidadeInput ? parseFloat(quantidadeInput.value) : 0;
 
-
-        // --- CÁLCULO DO CUSTO TOTAL (CORREÇÃO AQUI) ---
+       // --- CÁLCULO DO CUSTO TOTAL (CORREÇÃO AQUI) ---
         let custoTotalMaterial = 0;
         if (tipoMaterial === 'Área') {
             const area = (largura * altura) / 10000; // Calcula a área em m²
@@ -691,6 +706,8 @@ function cadastrarProduto() {
     limparFormulario('form-produtos-cadastrados');
     tabelaMateriaisProduto.innerHTML = '';
     alert('Produto cadastrado com sucesso!');
+    salvarDadosPrecificacao(); // <-- Salva no localStorage
+    exportarDados();         // <-- Faz o backup
 }
 
 function atualizarTabelaProdutosCadastrados() {
@@ -978,6 +995,8 @@ function editarProduto(index) {
 function removerProduto(index) {
     produtos.splice(index, 1);
     atualizarTabelaProdutosCadastrados();
+    salvarDadosPrecificacao(); // <-- Salva no localStorage
+    exportarDados();         // <-- Faz o backup
 }
 
 // --- Pesquisa e Adição de Materiais na Seção Produtos ---
@@ -1166,6 +1185,8 @@ function salvarTaxaCredito() {
     taxaCredito.incluir = incluir;
     taxaCredito.percentual = incluir ? percentual : 0; //Salva 0 se não incluir.
     calcularTotalComTaxas(); //Recalcula o total com a nova taxa.
+    salvarDadosPrecificacao(); // <-- Salva no localStorage
+    exportarDados();         // <-- Faz o backup
 }
 
 function calcularTotalComTaxas() {
@@ -1190,8 +1211,33 @@ function calcularTotalComTaxas() {
     }
 }
 
+//Funções para salvar e carregar do localStorage.
+function salvarDadosPrecificacao() {
+    localStorage.setItem('materiais', JSON.stringify(materiais));
+    localStorage.setItem('maoDeObra', JSON.stringify(maoDeObra));
+    localStorage.setItem('custosIndiretosPredefinidos', JSON.stringify(custosIndiretosPredefinidos));
+    localStorage.setItem('custosIndiretosAdicionais', JSON.stringify(custosIndiretosAdicionais));
+    localStorage.setItem('produtos', JSON.stringify(produtos));
+    localStorage.setItem('taxaCredito', JSON.stringify(taxaCredito));
+    localStorage.setItem('margemLucroPadrao', JSON.stringify(margemLucroPadrao));
+    // ... outros contadores/flags, se necessário
+}
+function carregarDadosPrecificacao() {
+    materiais = JSON.parse(localStorage.getItem('materiais')) || [];
+    maoDeObra = JSON.parse(localStorage.getItem('maoDeObra')) || { salario: 0, horas: 220, valorHora: 0, incluirFerias13o: false, custoFerias13o: 0 };
+    custosIndiretosPredefinidos = JSON.parse(localStorage.getItem('custosIndiretosPredefinidos')) || JSON.parse(JSON.stringify(custosIndiretosPredefinidosBase)); //Restaura a partir da base.
+    custosIndiretosAdicionais = JSON.parse(localStorage.getItem('custosIndiretosAdicionais')) || [];
+    produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+    taxaCredito = JSON.parse(localStorage.getItem('taxaCredito')) || {percentual: 5, incluir: false};
+    margemLucroPadrao = JSON.parse(localStorage.getItem('margemLucroPadrao')) || 50;
+    // ... outros contadores/flags
+}
+
 // Event Listeners (ajustado)
 document.addEventListener('DOMContentLoaded', () => {
+
+    // Carrega os dados do localStorage
+    carregarDadosPrecificacao();
 
     // Não precisa mais carregar produtos em um <select>
 
@@ -1218,6 +1264,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('incluir-taxa-credito-nao').checked = true;
     }
 
+     //Carrega dados nas tabelas e na seção de cálculo.
+    atualizarTabelaMateriaisInsumos();
+    carregarCustosIndiretosPredefinidos();
+    atualizarTabelaProdutosCadastrados();
     // --- Dispara os eventos para calcular inicialmente ---
     calcularCustos(); // Garante que tudo seja calculado no início
     salvarTaxaCredito();  //Para atualizar mensagem e valores corretamente.
@@ -1231,4 +1281,4 @@ document.addEventListener('click', function(event) {
     if (event.target !== autocompleteDiv && event.target !== inputPesquisa) {
         autocompleteDiv.classList.add('hidden');
     }
-});
+});           
