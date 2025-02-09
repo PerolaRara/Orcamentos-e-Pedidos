@@ -322,3 +322,10 @@ nav ul li a[onclick="limparPagina()"]:hover {
     }
 }
 /* ==== FIM SEÇÃO - MEDIA QUERIES ==== */
+
+/* ==== INÍCIO SEÇÃO - ESTILOS ADICIONADOS PARA CUSTO E MARGEM ==== */
+.form-row.valores-pedido label {
+    color: #7aa2a9;
+    font-weight: bold;
+}
+/* ==== FIM SEÇÃO - ESTILOS ADICIONADOS PARA CUSTO E MARGEM ==== */
