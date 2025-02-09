@@ -33,8 +33,8 @@ function converterMoedaParaNumero(valor) {
 }
 
 function limparCamposMoeda() {
-    const camposMoeda = ['valorFrete', 'valorOrcamento', 'total', 'entrada', 'restante', 'lucro',
-                         'valorFreteEdicao', 'valorPedidoEdicao', 'totalEdicao', 'entradaEdicao', 'restanteEdicao', 'lucroEdicao'];
+    const camposMoeda = ['valorFrete', 'valorOrcamento', 'total', 'entrada', 'restante', 'margemLucro', 'custoMaoDeObra',
+                         'valorFreteEdicao', 'valorPedidoEdicao', 'totalEdicao', 'entradaEdicao', 'restanteEdicao', 'margemLucroEdicao', 'custoMaoDeObraEdicao'];
     camposMoeda.forEach(id => {
         const campo = document.getElementById(id);
         if (campo) {
@@ -135,7 +135,8 @@ function atualizarTotaisEdicao() {
 function atualizarRestanteEdicao() {
     const total = converterMoedaParaNumero(document.getElementById("totalEdicao").value);
     const entrada = converterMoedaParaNumero(document.getElementById("entradaEdicao").value);
-    const restante = total - entrada;
+    const custoMaoDeObra = converterMoedaParaNumero(document.getElementById("custoMaoDeObraEdicao").value); // Adicionado custoMaoDeObra
+    const restante = total - entrada - custoMaoDeObra; // Subtraindo custoMaoDeObra do restante
 
     document.getElementById("restanteEdicao").value = formatarMoeda(restante);
 }
@@ -494,7 +495,8 @@ function gerarPedido(numeroOrcamento) {
         dataEntrega: orcamento.dataValidade,
         entrada: 0, // Valor inicial da entrada
         restante: orcamento.total, // Valor inicial do restante (igual ao total do orçamento)
-        lucro: 0, // Valor inicial do lucro
+        margemLucro: 0, // Valor inicial da margem de lucro
+        custoMaoDeObra: 0, // Valor inicial do custo de mão de obra
         valorPedido: orcamento.valorOrcamento, // Adiciona o valor do orçamento como valor do pedido
         produtos: orcamento.produtos.map(p => ({
             ...p,
@@ -607,7 +609,8 @@ function editarPedido(numeroPedido) {
     document.getElementById("totalEdicao").value = formatarMoeda(pedido.total);
     document.getElementById("entradaEdicao").value = formatarMoeda(pedido.entrada);
     document.getElementById("restanteEdicao").value = formatarMoeda(pedido.restante);
-    document.getElementById("lucroEdicao").value = formatarMoeda(pedido.lucro);
+    document.getElementById("margemLucroEdicao").value = formatarMoeda(pedido.margemLucro);
+    document.getElementById("custoMaoDeObraEdicao").value = formatarMoeda(pedido.custoMaoDeObra || 0);
     document.getElementById("observacoesEdicao").value = pedido.observacoes;
 
     // Preencher a tabela de produtos
@@ -666,7 +669,8 @@ function atualizarPedido() {
         total: converterMoedaParaNumero(document.getElementById("totalEdicao").value),
         entrada: converterMoedaParaNumero(document.getElementById("entradaEdicao").value),
         restante: converterMoedaParaNumero(document.getElementById("restanteEdicao").value),
-        lucro: converterMoedaParaNumero(document.getElementById("lucroEdicao").value),
+        margemLucro: converterMoedaParaNumero(document.getElementById("margemLucroEdicao").value),
+        custoMaoDeObra: converterMoedaParaNumero(document.getElementById("custoMaoDeObraEdicao").value),
         observacoes: document.getElementById("observacoesEdicao").value
     };
 
@@ -712,12 +716,12 @@ function filtrarPedidosRelatorio() {
 function gerarRelatorio(pedidosFiltrados) {
     let totalPedidos = 0;
     let totalFrete = 0;
-    let totalLucro = 0;
+    let totalMargemLucro = 0; // Alterado para totalMargemLucro
 
     pedidosFiltrados.forEach(pedido => {
         totalPedidos += pedido.total;
         totalFrete += pedido.valorFrete;
-        totalLucro += pedido.lucro;
+        totalMargemLucro += pedido.margemLucro; // Alterado para pedido.margemLucro
     });
 
     const quantidadePedidos = pedidosFiltrados.length;
@@ -728,7 +732,7 @@ function gerarRelatorio(pedidosFiltrados) {
                 <tr>
                     <th>Total de Pedidos</th>
                     <th>Total de Frete</th>
-                    <th>Total de Lucro</th>
+                    <th>Total de Margem de Lucro</th>
                     <th>Quantidade de Pedidos</th>
                 </tr>
             </thead>
@@ -736,7 +740,7 @@ function gerarRelatorio(pedidosFiltrados) {
                 <tr>
                     <td>${formatarMoeda(totalPedidos)}</td>
                     <td>${formatarMoeda(totalFrete)}</td>
-                    <td>${formatarMoeda(totalLucro)}</td>
+                    <td>${formatarMoeda(totalMargemLucro)}</td>
                     <td>${quantidadePedidos}</td>
                 </tr>
             </tbody>
@@ -892,6 +896,8 @@ function limparPagina() {
             formEdicaoPedido.reset();
             limparCamposMoeda();
             document.querySelector("#tabelaProdutosEdicao tbody").innerHTML = "";
+            document.getElementById('custoMaoDeObraEdicao').value = '0,00'; // Limpa o campo Custo de mão de obra
+            document.getElementById('margemLucroEdicao').value = '0,00'; // Limpa o campo Margem de Lucro (opcional, pois limparCamposMoeda já limpa campos moeda)
         }
 
         if (document.getElementById("orcamentos-gerados").style.display === 'block') {
