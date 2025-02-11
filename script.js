@@ -29,6 +29,10 @@ function formatarEntradaMoeda(input) {
 }
 
 function converterMoedaParaNumero(valor) {
+    if (typeof valor !== 'string') {
+        console.warn('converterMoedaParaNumero recebeu um valor não string:', valor);
+        return 0; // Retorna 0 se o valor não for string
+    }
     return parseFloat(valor.replace(/R\$\s?|\./g, '').replace(',', '.')) || 0;
 }
 
@@ -488,31 +492,41 @@ function gerarPedido(numeroOrcamento) {
         return;
     }
 
+    numeroPedido++; // Incrementa o contador de pedidos
+
     const pedido = {
-        numero: gerarNumeroFormatado(numeroPedido),
-        ...orcamento, // Isso copia todas as propriedades do orçamento
+        numero: gerarNumeroFormatado(numeroPedido), // Gera o NÚMERO DO PEDIDO corretamente
         dataPedido: new Date().toISOString().split('T')[0],
         dataEntrega: orcamento.dataValidade,
-        entrada: 0, // Valor inicial da entrada
-        restante: orcamento.total, // Valor inicial do restante (igual ao total do orçamento)
-        margemLucro: 0, // Valor inicial da margem de lucro
-        custoMaoDeObra: 0, // Valor inicial do custo de mão de obra
-        valorPedido: orcamento.valorOrcamento, // Adiciona o valor do orçamento como valor do pedido
+        cliente: orcamento.cliente, // Copia campos específicos do orçamento
+        endereco: orcamento.endereco,
+        tema: orcamento.tema,
+        cidade: orcamento.cidade,
+        telefone: orcamento.telefone,
+        email: orcamento.email,
+        cores: orcamento.cores,
+        pagamento: orcamento.pagamento,
+        valorFrete: orcamento.valorFrete,
+        valorOrcamento: orcamento.valorOrcamento,
+        total: orcamento.total,
+        observacoes: orcamento.observacoes,
+        entrada: 0,
+        restante: orcamento.total,
+        margemLucro: converterMoedaParaNumero(document.getElementById("margemLucroEdicao").value) || 0, // Garante inicialização como número
+        custoMaoDeObra: converterMoedaParaNumero(document.getElementById("custoMaoDeObraEdicao").value) || 0, // Garante inicialização como número
+        valorPedido: orcamento.valorOrcamento,
         produtos: orcamento.produtos.map(p => ({
             ...p,
             valorTotal: p.quantidade * p.valorUnit
-        })),
-        observacoes: orcamento.observacoes // COPIANDO OBSERVAÇÕES DO ORÇAMENTO PARA O PEDIDO
+        }))
     };
 
-    delete pedido.dataValidade;
+    delete pedido.dataValidade; // Remove dataValidade, pois pedido usa dataEntrega
 
-    orcamento.numeroPedido = pedido.numero;
+    orcamento.numeroPedido = pedido.numero; // Vincula o número do pedido AO ORÇAMENTO (para referência)
+    orcamento.pedidoGerado = true;
 
     pedidos.push(pedido);
-    numeroPedido++;
-
-    orcamento.pedidoGerado = true;
 
     exportarDados();
     salvarDados();
@@ -669,8 +683,8 @@ function atualizarPedido() {
         total: converterMoedaParaNumero(document.getElementById("totalEdicao").value),
         entrada: converterMoedaParaNumero(document.getElementById("entradaEdicao").value),
         restante: converterMoedaParaNumero(document.getElementById("restanteEdicao").value),
-        margemLucro: converterMoedaParaNumero(document.getElementById("margemLucroEdicao").value),
-        custoMaoDeObra: converterMoedaParaNumero(document.getElementById("custoMaoDeObraEdicao").value),
+        margemLucro: converterMoedaParaNumero(document.getElementById("margemLucroEdicao").value) || 0, // Garante que seja número
+        custoMaoDeObra: converterMoedaParaNumero(document.getElementById("custoMaoDeObraEdicao").value) || 0, // Garante que seja número
         observacoes: document.getElementById("observacoesEdicao").value
     };
 
@@ -716,12 +730,14 @@ function filtrarPedidosRelatorio() {
 function gerarRelatorio(pedidosFiltrados) {
     let totalPedidos = 0;
     let totalFrete = 0;
-    let totalMargemLucro = 0; // Alterado para totalMargemLucro
+    let totalMargemLucro = 0;
+    let totalCustoMaoDeObra = 0; // Nova variável para o total de custo de mão de obra
 
     pedidosFiltrados.forEach(pedido => {
         totalPedidos += pedido.total;
         totalFrete += pedido.valorFrete;
-        totalMargemLucro += pedido.margemLucro; // Alterado para pedido.margemLucro
+        totalMargemLucro += converterMoedaParaNumero(String(pedido.margemLucro)); // Converte para String explicitamente
+        totalCustoMaoDeObra += converterMoedaParaNumero(String(pedido.custoMaoDeObra)); // Converte para String explicitamente
     });
 
     const quantidadePedidos = pedidosFiltrados.length;
@@ -733,6 +749,7 @@ function gerarRelatorio(pedidosFiltrados) {
                     <th>Total de Pedidos</th>
                     <th>Total de Frete</th>
                     <th>Total de Margem de Lucro</th>
+                    <th>Total de Custo de Mão de Obra</th> <!-- Nova coluna aqui -->
                     <th>Quantidade de Pedidos</th>
                 </tr>
             </thead>
@@ -741,6 +758,7 @@ function gerarRelatorio(pedidosFiltrados) {
                     <td>${formatarMoeda(totalPedidos)}</td>
                     <td>${formatarMoeda(totalFrete)}</td>
                     <td>${formatarMoeda(totalMargemLucro)}</td>
+                    <td>${formatarMoeda(totalCustoMaoDeObra)}</td> <!-- Dados da nova coluna aqui -->
                     <td>${quantidadePedidos}</td>
                 </tr>
             </tbody>
@@ -751,11 +769,18 @@ function gerarRelatorio(pedidosFiltrados) {
 }
 
 function gerarRelatorioXLSX() {
+    // Verifica se a tabela de relatório foi gerada
+    const relatorioTable = document.querySelector('.relatorio-table');
+    if (!relatorioTable) {
+        alert('Erro: Tabela de relatório não encontrada. Gere o relatório primeiro.');
+        return;
+    }
+
     // Criar uma nova pasta de trabalho
     const wb = XLSX.utils.book_new();
 
     // Criar uma nova planilha
-    const ws = XLSX.utils.table_to_sheet(document.querySelector('.relatorio-table'));
+    const ws = XLSX.utils.table_to_sheet(relatorioTable);
 
     // Adicionar a planilha à pasta de trabalho
     XLSX.utils.book_append_sheet(wb, ws, "Relatorio");
