@@ -28,29 +28,16 @@
                     <li><a href="#" data-pagina="lista-pedidos">Pedidos Realizados</a></li>
                     <li><a href="#" data-pagina="relatorio">Relatório</a></li>
                     <!-- REMOVIDO o link Limpar Página -->
+                      <li><button id="btnLogout" style="display:none;">Sair</button></li>
                 </ul>
             </nav>
             <hr class="menu">
         </header>
         <!-- ==== FIM SEÇÃO - CABEÇALHO ==== -->
 
-        <!-- Seção de Autenticação (Inicialmente oculta) -->
-        <div id="authSection" style="display: block; text-align: center; margin-bottom: 20px;">
-            <input type="email" id="email" placeholder="Email" style="margin-bottom: 10px;">
-            <input type="password" id="password" placeholder="Senha" style="margin-bottom: 10px;">
-            <div>
-                <button id="btnRegister">Registrar</button>
-                <button id="btnLogin">Entrar</button>
-                <button id="btnLogout" style="display:none;">Sair</button>
-                <span id="btnForgotPasswordContainer" style="margin-left: 10px;">
-                    <button id="btnForgotPassword">Esqueci minha senha?</button>
-                </span>
-            </div>
-            <p id="authStatus">Nenhum usuário autenticado</p>
-            <div id="passwordResetMessage" style="display:none; color: green; margin-top: 10px;"></div>
-        </div>
+        <!-- ==== Adicionado após Seção de Autenticação ==== -->
+        <!-- Removida a Seção de Autenticação -->
 
-      <!-- ==== Adicionado após Seção de Autenticação ==== -->
         <div id="appContent" style="display: block;">
 
         <!-- ==== INÍCIO SEÇÃO - FORMULÁRIO DE ORÇAMENTO ==== -->
@@ -346,7 +333,7 @@
         </section>
         <!-- ==== FIM SEÇÃO - FORMULÁRIO DE EDIÇÃO DE PEDIDO ==== -->
 
-        <!-- ==== INÍCIO SEÇÃO - RELATÓRIO ==== -->
+               <!-- ==== INÍCIO SEÇÃO - RELATÓRIO ==== -->
         <section id="relatorio" class="pagina" style="display:none;">
             <h2>Relatório de Pedidos</h2>
             <div class="filtro-data">
