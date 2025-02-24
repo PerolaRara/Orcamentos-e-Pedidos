@@ -33,100 +33,26 @@ let usuarioAtual = null; // Armazena o usuário logado
 /* ==== FIM SEÇÃO - VARIÁVEIS GLOBAIS ==== */
 
 /* ==== INÍCIO SEÇÃO - AUTENTICAÇÃO ==== */
-// Referências aos elementos do HTML (Autenticação)
-const btnRegister = document.getElementById('btnRegister');
-const btnLogin = document.getElementById('btnLogin');
-const btnLogout = document.getElementById('btnLogout');
-const authStatus = document.getElementById('authStatus');
-const emailInput = document.getElementById('email');
-const passwordInput = document.getElementById('password');
-const authSection = document.getElementById('authSection');
-const appContent = document.getElementById('appContent'); //Para mostrar Sections
-const btnForgotPassword = document.getElementById('btnForgotPassword');
-const passwordResetMessage = document.getElementById('passwordResetMessage');
+// Removidas todas as referências a elementos do HTML relacionados à autenticação
+// (btnRegister, btnLogin, authStatus, emailInput, passwordInput, etc.)
+// Removidas as funções relacionadas à autenticação (updateAuthUI, listeners de eventos
+// para botões de autenticação, monitor de estado de autenticação onAuthStateChanged).
 
+// Mantido o botão de logout, movido para o menu
+const btnLogout = document.getElementById('btnLogout'); // Agora no menu
 
-// Função para lidar com a interface de autenticação
-function updateAuthUI(user) {
-    if (user) {
-        authStatus.textContent = "Usuário autenticado: " + user.email;
-        btnLogout.style.display = "inline-block";
-        btnLogin.style.display = "none";
-        btnRegister.style.display = "none";
-        authSection.style.display = "block"; //Sempre mostrar
-        appContent.style.display = "block";      // Mostrar conteúdo principal
-
-        // Carrega dados *somente* após autenticação
-        carregarDados();
-    } else {
-        authStatus.textContent = "Nenhum usuário autenticado";
-        btnLogout.style.display = "none";
-        btnLogin.style.display = "inline-block";
-        btnRegister.style.display = "inline-block";
-        authSection.style.display = "block";  //Sempre mostrar
-        appContent.style.display = "none"; // Ocultar conteúdo principal
-
-        // Limpar os dados se o usuário fizer logout.
-        orcamentos = [];
-        pedidos = [];
-        numeroOrcamento = 1;
-        numeroPedido = 1;
-        mostrarOrcamentosGerados(); // Atualiza a exibição
-        mostrarPedidosRealizados();
-    }
+// Função de logout (chamada pelo botão no menu)
+if (btnLogout) { //Verifica se existe o botão
+    btnLogout.addEventListener('click', async () => {
+        try {
+            await signOut(auth);
+            console.log("Usuário desconectado.");
+             window.location.href = "./login/login.html"; // Redireciona para a tela de login
+        } catch (error) {
+            console.error("Erro ao sair:", error);
+        }
+    });
 }
-
-// Listeners de eventos para os botões de autenticação
-btnRegister.addEventListener('click', async () => {
-    const email = emailInput.value;
-    const password = passwordInput.value;
-     if (!email || !password) {
-        alert("Preencha email e senha para registrar.");
-        return;
-    }
-    try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        console.log("Usuário registrado:", userCredential.user);
-        updateAuthUI(userCredential.user); // Atualiza a UI
-    } catch (error) {
-        console.error("Erro no registro:", error);
-        alert("Erro no registro: " + error.message);
-    }
-});
-
-btnLogin.addEventListener('click', async () => {
-    const email = emailInput.value;
-    const password = passwordInput.value;
-
-    if (!email || !password) {
-        alert("Preencha email e senha para entrar.");
-        return;
-    }
-    try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        console.log("Usuário logado:", userCredential.user);
-        updateAuthUI(userCredential.user); // Atualiza a UI
-    } catch (error) {
-        console.error("Erro no login:", error);
-        alert("Erro no login: " + error.message);
-    }
-});
-
-btnLogout.addEventListener('click', async () => {
-    try {
-        await signOut(auth);
-        console.log("Usuário desconectado.");
-        updateAuthUI(null); // Atualiza a UI
-    } catch (error) {
-        console.error("Erro ao sair:", error);
-    }
-});
-
-// Monitor de estado de autenticação
-onAuthStateChanged(auth, (user) => {
-    usuarioAtual = user; // Define a variável global
-    updateAuthUI(user); // Sempre atualiza a UI
-});
 
 /* ==== FIM SEÇÃO - AUTENTICAÇÃO ==== */
 
@@ -719,7 +645,7 @@ async function atualizarOrcamento() {
     produtos.forEach(row => {
         orcamentoAtualizado.produtos.push({ // Preenche o array de produtos
             quantidade: parseFloat(row.querySelector(".produto-quantidade").value),
-            descricao: row.querySelector(".produto-descricao").value,
+                       descricao: row.querySelector(".produto-descricao").value,
             valorUnit: converterMoedaParaNumero(row.querySelector(".produto-valor-unit").value),
             valorTotal: converterMoedaParaNumero(row.cells[3].textContent)
         });
@@ -1172,33 +1098,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==== RECUPERAÇÃO DE SENHA ====
-    const btnForgotPassword = document.getElementById('btnForgotPassword');
-    const passwordResetMessage = document.getElementById('passwordResetMessage');
-
-    if (btnForgotPassword) {
-        btnForgotPassword.addEventListener('click', async () => {
-            const email = emailInput.value; // Usa o e-mail inserido no campo de e-mail de login
-            if (!email) {
-                alert("Por favor, insira seu email para redefinir a senha.");
-                return;
-            }
-
-            try {
-                await sendPasswordResetEmail(auth, email);
-                passwordResetMessage.textContent = "Email de redefinição de senha enviado. Verifique sua caixa de entrada (e spam).";
-                passwordResetMessage.style.display = "block"; // Mostra mensagem de sucesso
-                // Oculta a mensagem após alguns segundos (opcional)
-                setTimeout(() => {
-                    passwordResetMessage.style.display = "none";
-                }, 5000); // Oculta após 5 segundos
-            } catch (error) {
-                console.error("Erro ao enviar email de redefinição:", error);
-                alert("Erro ao redefinir a senha. Verifique o console para detalhes.");
-                passwordResetMessage.textContent = "Erro ao enviar email de redefinição. Tente novamente.";
-                passwordResetMessage.style.display = "block"; // Mostra mensagem de erro
-            }
-        });
-    }
+    //Removida a recuperação de senha
 
     // ==== ADICIONANDO EVENT LISTENERS PROGRAMATICAMENTE ====
 
@@ -1288,6 +1188,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==== FIM - ADICIONANDO EVENT LISTENERS PROGRAMATICAMENTE ====
+
+       // Monitor de estado de autenticação (agora em script.js)
+    onAuthStateChanged(auth, (user) => {
+        usuarioAtual = user;
+        if (user) {
+           //Se tiver usuário logado
+            console.log("Usuário autenticado:", user.email);
+            btnLogout.style.display = "inline-block"; // Mostra o botão de logout
+            carregarDados(); // Carrega os dados
+        } else {
+            // Se não tiver usuário logado
+            console.log("Nenhum usuário autenticado.");
+            btnLogout.style.display = "none";  // Oculta o botão de logout
+            // Limpa os dados (opcional, dependendo do seu caso de uso)
+            orcamentos = [];
+            pedidos = [];
+            numeroOrcamento = 1;
+            numeroPedido = 1;
+            mostrarOrcamentosGerados();
+            mostrarPedidosRealizados();
+             window.location.href = "./login/login.html"; // Redireciona para login
+        }
+    });
+
 
     // Inicializar campos moeda para 'R$ 0,00' no carregamento da página
     limparCamposMoeda();
